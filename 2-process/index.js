@@ -20,17 +20,26 @@ client.on('connect', function(connection) {
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             console.log("Received: '" + message.utf8Data + "'");
-        }
+        }c
     });
-    
-    function sendNumber() {
+
+    sendSubscriptionRequests();
+
+    function sendSubscriptionRequests () {
         if (connection.connected) {
-            var number = Math.round(Math.random() * 0xFFFFFF);
-            connection.sendUTF(number.toString());
-            setTimeout(sendNumber, 1000);
+            let series = ['a', 'b', 'c'];
+            connection.sendUTF(JSON.stringify({action: 'subscribe', data: series}));
         }
     }
-    sendNumber();
+    
+    // function sendNumber() {
+    //     if (connection.connected) {
+    //         var number = Math.round(Math.random() * 0xFFFFFF);
+    //         connection.sendUTF(number.toString());
+    //         setTimeout(sendNumber, 1000);
+    //     }
+    // }
+    // sendNumber();
 });
  
 client.connect('ws://localhost:8080/', 'echo-protocol');

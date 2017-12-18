@@ -3,6 +3,8 @@
 
 var WebSocketServer = require('websocket').server;
 var http = require('http');
+
+var DataSimulator = new require('./data-simulator');
  
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -43,8 +45,14 @@ wsServer.on('request', function(request) {
         console.log('message' + "\n\n" + JSON.stringify(message) + "\n\n");
 
         if (message.type === 'utf8') {
-            console.log('Received Message: ' + message.utf8Data);
-            connection.sendUTF(message.utf8Data);
+
+            var details = JSON.parse(message.utf8Data);
+
+            if (details.action === 'subscribe') {
+                console.log('subscribing: ', JSON.stringify(details.data));
+                // connection.sendUTF('subscription request received');
+                DataSimulator.subscribe(details.data, sendData);
+            }
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
@@ -54,4 +62,9 @@ wsServer.on('request', function(request) {
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
+
+    function sendData (str) {
+        // console.log('sending: ', "\t", str);
+        connection.sendUTF(str);
+    } 
 });
