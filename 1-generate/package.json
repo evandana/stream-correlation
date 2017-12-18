@@ -1,0 +1,14 @@
+{
+  "name": "1-generate",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/evandana/stream-correlation",
+  "author": "Evan Dana <evan.writes.code@gmail.com>",
+  "license": "MIT",
+  "scripts":{
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "websocket": "^1.0.25"
+  }
+}

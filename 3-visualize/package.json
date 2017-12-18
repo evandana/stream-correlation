@@ -1,0 +1,8 @@
+{
+  "name": "3-visualize",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/evandana/stream-correlation",
+  "author": "Evan Dana <evan.writes.code@gmail.com>",
+  "license": "MIT"
+}

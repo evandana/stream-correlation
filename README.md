@@ -11,7 +11,9 @@ Detect stream correlations in a limited number of streams
 1. [Process](./2-process) data from the source
 1. [Visualize](./3-visualize) the processed data
 
-## Run
+## Install & Run
 
-1. `initall.sh`
-1. `runall.sh`
+1. In your terminal, run: `./initall.sh && ./runall.sh`
+    - Installs all three sub-directories
+    - Runs each in a separate terminal
+1. Use Chrome to navigate to `localhost:1234`
