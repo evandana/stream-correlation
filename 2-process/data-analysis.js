@@ -3,39 +3,89 @@ class DataAnalysis {
     constructor() {
         console.log('data-analysis started');
     
-        this.allData = {};
+        this.rawData = {};
+        this.processedData = {
+            threadMapping: {},
+            threads: []
+        };
         this.subscriptions = {};
 
         this.DATA_LENGTH = 10;
     
     }    
 
+    processData (seriesArray, data) {
+
+        seriesArray.forEach(series => {
+            var threadSeriesIndex = null;
+            let threadIndex = this.processedData.threads.findIndex(thread => {
+                let tempThreadSeriesIndex = thread.findIndex(threadSeries => {
+                    return threadSeries.series === series; 
+                });
+                if (tempThreadSeriesIndex > -1) {
+                    threadSeriesIndex = tempThreadSeries;
+                }
+                return tempThreadSeriesIndex;
+            });
+
+            if (threadIndex > -1) {
+                if (threadSeriesIndex > -1) {
+                    this.processedData.threads[threadIndex][threadSeriesIndex] = {
+                        series: series, 
+                        data: this.rawData[series]
+                    };
+                }
+            } else {
+                threadIndex = this.processedData.threads.length;
+                this.processedData.threads.push([{
+                    series: series,
+                    data: [this.rawData[series]]
+                }]);
+            }
+            
+            this.processedData.threadMapping[series] = threadIndex;
+        });
+
+        this.updateSubscribers(seriesArray, data);
+    }
+
     replaceSeries (detail) {
+
+        // console.log('replaceSeries', JSON.stringify(detail));
+
         let series = detail.series;
         let data = detail.data;
 
-        this.allData[series] = data;
+        this.rawData[series] = data;
 
-        this.updateSubscribers([series]);
+        if (series) {
+            this.processData([series]);
+        }
     }
 
     updateSeries (detail) {
+        
+        // console.log('updateSeries', JSON.stringify(detail));
+
         let series = detail.series;
         let data = detail.data;
 
-        if (!this.allData[series]) {
+        if (!this.rawData[series]) {
             return;
         }
 
-        let len = this.allData[series].length;
+        let len = this.rawData[series].length;
         
         if (len >= this.DATA_LENGTH) {
-            this.allData[series].shift();    
+            this.rawData[series].shift();    
         }
         
-        this.allData[series].push(data);
+        this.rawData[series].push(data);
 
-        this.updateSubscribers([series], data);
+
+        if (series) {
+            this.processData([series], data);
+        }
     }
 
     sendUpdate (data) {
@@ -82,21 +132,46 @@ class DataAnalysis {
         }
     }
 
+    getThread (series) {
+        return this.processedData.threadMapping[series];
+    }
+
     updateSubscribers(seriesArray, newData) {
-        seriesArray.forEach(series => {
+
+        console.log('update subscribers');
+
+        let threadIndices = seriesArray.map(series => this.getThread(series))
+            .sort()
+            .reduce((agg, curr) => {
+                if (agg.indexOf(curr) > -1) {
+                    agg.push(curr);
+                } 
+                return agg;
+            }, []) ;
+
+        
+        console.log('processedData', JSON.stringify(this.processedData));
+
+        threadIndices.forEach(threadIndex => {
+
+            console.log('processedData', JSON.stringify({
+                action: 'thread',
+                thread: threadIndex,
+                data: this.processedData.threads[threadIndex]
+            }));
 
             if (this.subscriptions[series]) {
                 this.subscriptions[series].forEach(existingSeriesSubscription => {
                     existingSeriesSubscription.subscriptionCallback({
-                        action: 'series',
-                        series: series,
-                        data: this.allData[series]
+                        action: 'thread',
+                        thread: threadIndex,
+                        data: this.processedData.threads[threadIndex]
                     });
 
                     if (newData) {
                         existingSeriesSubscription.subscriptionCallback({
                             action: 'update',
-                            series: series,
+                            thread: threadIndex,
                             data: newData
                         });
                     }
