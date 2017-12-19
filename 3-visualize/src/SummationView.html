@@ -10,12 +10,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
- <link rel="import" href="../bower_components/google-chart/google-chart.html"> 
+<link rel="import" href="../bower_components/google-chart/google-chart.html">
 
 <dom-module id="summation-view">
   <template>
     <style include="shared-styles">
-      :host {
+       :host {
         display: block;
 
         padding: 10px;
@@ -25,16 +25,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <div class="card">
       <div class="circle">1</div>
       <h1>Simple Visualization</h1>
-      <google-chart
-        type='line'
-        options="{{options}}"
-        cols="{{cols}}"
-        rows="{{rows}}"
-        >          
+      <google-chart type='line' options="{{options}}" cols="{{cols}}" rows="{{rows}}">
       </google-chart>
       <div id="linechart_material" width="400px" height="400px"></div>
       <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
+      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per
+        in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
     </div>
   </template>
 
@@ -43,28 +39,123 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get is() { return 'summation-view'; }
 
       static get properties() {
+
         return {
           rows: {
             type: Array,
-            value: [["Jan", 31],["Feb", 28],["Mar", 31]]
+            value: [[1, 2, 31], [2, 4, 28], [3, 8, 31]]
           },
           cols: {
             type: Array,
-            value: [{"label":"Month", "type":"string"}, {"label":"Days", "type":"number"}]
+            value: [{ label: "index", type: "number" }, { label: "a", type: "number" }, { "label": "b", "type": "number" }]
           },
           options: {
             type: Object,
-            value: {"title": "Distribution of days in 2001Q1"}
+            value: { "title": "Distribution of days in 2001Q1" }
           }
         }
       }
 
-      // created() {
-      //   // loadInitChart();
-      // }
+      /** 
+       * Native lifecycle method
+       **/
+      connectedCallback() {
+        super.connectedCallback();
+
+        this.tempChangeData();
+      }
+
+      getRandomVal(max) {
+        return Math.round(Math.random() * max);
+      }
+
+      getStubData() {
+        return {
+          threadMapping: {
+            a: 0,
+            b: 1,
+            c: 2
+          },
+          threads: [
+            [
+              {
+                series: "a",
+                data: [this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), 117, 342, 308, 182, 911, 22, 804]
+              },
+              {
+                series: "b",
+                data: [273, 89, 118, this.getRandomVal(1000), this.getRandomVal(1000), 630, 838, 707, 630, 571]
+              }
+            ],
+            [
+              {
+                series: "c",
+                data: [273, 89, 118, 485, 529, 630, 838, 707, 630, 571]
+              }
+            ],
+            [
+              {
+                series: "d",
+                data: [this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000)]
+              }
+            ]
+          ]
+        }
+      }
+
+      translateFromWsToChartFormat(wsData) {
+
+        return wsData.threads.map( thread => {
+          let chartData = {
+            rows: [],
+            cols: [],
+            options: {}
+          };
+          // assume there's always at least one series in a thread
+          let series1 = thread[0];
+          chartData.cols.push([]);
+          thread.forEach( series => {
+            chartData.cols[0].push({label: series.series, type: 'number'});
+          });
+          series1.data.forEach((dataVal, index) => {
+            chartData.rows.push([index]);
+            thread.forEach( series => {
+              chartData.rows[index].push(series.data[index]);
+            });
+          });
+
+          return chartData;
+        });
+
+        // goal: 
+        // [
+        //   ['Year', 'Sales', 'Expenses'],
+        //   ['2004',  1000,      400],
+        //   ['2005',  1170,      460],
+        //   ['2006',  660,       1120],
+        //   ['2007',  1030,      540]
+        // ]
+
+      }
+
+      tempChangeData() {
+
+        // this.set('rows', [
+        //   ["Jan", this.getRandomVal(31)],
+        //   ["Feb", this.getRandomVal(28)],
+        //   ["Mar", this.getRandomVal(31)]
+        // ]);
+
+        // TODO: set data to result of...
+        let translatedData = this.translateFromWsToChartFormat(this.getStubData());
+        this.set('rows', translatedData[0].rows);
+        this.set('cols', translatedData[0].cols);
+
+        setTimeout(() => this.tempChangeData(), 4 * 1000);
+      }
 
       // loadInitChart () {
-        
+
       //   // google.charts.load('current', {'packages':['line']});
       //   google.charts.setOnLoadCallback(drawChart);
 

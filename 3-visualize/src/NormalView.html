@@ -10,8 +10,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
+ <link rel="import" href="../bower_components/google-chart/google-chart.html"> 
 
-<dom-module id="NormalView">
+<dom-module id="normal-view">
   <template>
     <style include="shared-styles">
       :host {
@@ -23,17 +24,113 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="circle">2</div>
-      <h1>View Two</h1>
-      <p>Ea duis bonorum nec, falli paulo aliquid ei eum.</p>
-      <p>Id nam odio natum malorum, tibique copiosae expetenda mel ea.Detracto suavitate repudiandae no eum. Id adhuc minim soluta nam.Id nam odio natum malorum, tibique copiosae expetenda mel ea.</p>
+      <h1>Normal</h1>
+      <google-chart
+        type='line'
+        options="{{options}}"
+        cols="{{cols}}"
+        rows="{{rows}}"
+        >          
+      </google-chart>
+      <div id="linechart_material" width="400px" height="400px"></div>
+      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
+      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
     </div>
   </template>
 
   <script>
-    class MyView2 extends Polymer.Element {
-      static get is() { return 'NormalView'; }
+    class NormalView extends Polymer.Element {
+      static get is() { return 'normal-view'; }
+
+      static get properties() {
+
+        return {
+          rows: {
+            type: Array,
+            value: [["Jan", 31],["Feb", 28],["Mar", 31]]
+          },
+          cols: {
+            type: Array,
+            value: [{"label":"Month", "type":"string"}, {"label":"Days", "type":"number"}]
+          },
+          options: {
+            type: Object,
+            value: {"title": "Distribution of days in 2001Q1"}
+          }
+        }
+      }
+
+      /** 
+       * Native lifecycle method
+       **/
+      connectedCallback  () {
+        super.connectedCallback();
+
+        this.tempChangeData();
+      }
+
+      getRandomVal (max) {
+        return Math.round(Math.random()*max);
+      }
+
+      tempChangeData () {
+
+        this.set('rows', [
+          ["Jan", this.getRandomVal(31)],
+          ["Feb", this.getRandomVal(28)],
+          ["Mar", this.getRandomVal(31)]
+        ]);
+
+        setTimeout(() => this.tempChangeData(), 4*1000);
+      }
+
+      // loadInitChart () {
+        
+      //   // google.charts.load('current', {'packages':['line']});
+      //   google.charts.setOnLoadCallback(drawChart);
+
+      //   function drawChart() {
+
+      //     var data = new google.visualization.DataTable();
+      //     data.addColumn('number', 'Day');
+      //     data.addColumn('number', 'Guardians of the Galaxy');
+      //     data.addColumn('number', 'The Avengers');
+      //     data.addColumn('number', 'Transformers: Age of Extinction');
+
+      //     data.addRows([
+      //       [1,  37.8, 80.8, 41.8],
+      //       [2,  30.9, 69.5, 32.4],
+      //       [3,  25.4,   57, 25.7],
+      //       [4,  11.7, 18.8, 10.5],
+      //       [5,  11.9, 17.6, 10.4],
+      //       [6,   8.8, 13.6,  7.7],
+      //       [7,   7.6, 12.3,  9.6],
+      //       [8,  12.3, 29.2, 10.6],
+      //       [9,  16.9, 42.9, 14.8],
+      //       [10, 12.8, 30.9, 11.6],
+      //       [11,  5.3,  7.9,  4.7],
+      //       [12,  6.6,  8.4,  5.2],
+      //       [13,  4.8,  6.3,  3.6],
+      //       [14,  4.2,  6.2,  3.4]
+      //     ]);
+
+      //     var options = {
+      //       chart: {
+      //         title: 'Box Office Earnings in First Two Weeks of Opening',
+      //         subtitle: 'in millions of dollars (USD)'
+      //       },
+      //       width: 900,
+      //       height: 500
+      //     };
+
+      //     var chart = new google.charts.Line(document.getElementById('linechart_material'));
+
+      //     chart.draw(data, google.charts.Line.convertOptions(options));
+      //   }
+      // }
+
     }
 
-    window.customElements.define(MyView2.is, MyView2);
+    window.customElements.define(NormalView.is, NormalView);
   </script>
 </dom-module>
