@@ -27,8 +27,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <h1>Simple Visualization</h1>
       <template is="dom-repeat" items="{{threads}}">
         <template is="dom-if" if="{{item.cols.length}}">
-          <pre>{{stringify(item.cols)}}</pre>
-          <pre>{{stringify(item.rows)}}</pre>
+          <!-- <pre>{{stringify(item.cols)}}</pre>
+          <pre>{{stringify(item.rows)}}</pre> -->
           <google-chart 
             type='line' 
               options="{{item.options}}" 
@@ -38,9 +38,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </template>
       </template>
       <div id="linechart_material" width="400px" height="400px"></div>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per
-        in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
     </div>
   </template>
 
@@ -61,11 +58,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       stringify(text) {
         return JSON.stringify(text);
-      }
-
-
-      getSeriesinThread(threadNum) {
-        return threadNum.length();
       }
 
       /** 
@@ -125,49 +117,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             options: {}
           };
           // assume there's always at least one series in a thread
-
-          //let series1 = thread[0];
           chartData.cols.push({ label: 'index', type: 'number' });
           thread.forEach((series) => {
-            // console.log("Series data: ", series);
             chartData.cols.push({ label: series.series, type: 'number' });
           });
           thread[0].data.forEach((dataVal, index) => {
-            //console.log("dataVal: "+ dataVal+ " index: "+ index);
             chartData.rows.push([index]);
             thread.forEach(series => {
-              // console.log(" Inside series: "+ series+ " index: "+ index);
-              chartData.rows[index].push(series.data[index]);
-              //console.log(" Inside series.data[index]: "+ series.data[index]+ " index: "+ index);
+            chartData.rows[index].push(series.data[index]);
             });
           });
 
           return chartData;
         });
-
-        // goal: 
-        // [
-        //   ['Year', 'Sales', 'Expenses'],
-        //   ['2004',  1000,      400],
-        //   ['2005',  1170,      460],
-        //   ['2006',  660,       1120],
-        //   ['2007',  1030,      540]
-        // ]
-
       }
 
       tempChangeData() {
-
-        // this.set('rows', [
-        //   ["Jan", this.getRandomVal(31)],
-        //   ["Feb", this.getRandomVal(28)],
-        //   ["Mar", this.getRandomVal(31)]
-        // ]);
-
-        // TODO: set data to result of...
         let translatedData = this.translateFromWsToChartFormat(this.getStubData());
         this.set('threads', translatedData);
-        //this.set('cols', translatedData[0].cols);
         console.log("translatedData: ", translatedData);
         setTimeout(() => this.tempChangeData(), 4 * 1000);
       }
