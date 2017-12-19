@@ -15,7 +15,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <dom-module id="summation-view">
   <template>
     <style include="shared-styles">
-       :host {
+      :host {
         display: block;
 
         padding: 10px;
@@ -25,12 +25,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <div class="card">
       <div class="circle">1</div>
       <h1>Simple Visualization</h1>
-      <google-chart type='line' options="{{options}}" cols="{{cols}}" rows="{{rows}}">
-      </google-chart>
+      <template is="dom-repeat" items="{{threads}}">
+        <template is="dom-if" if="{{item.cols.length}}">
+          <!-- <pre>{{stringify(item.cols)}}</pre>
+          <pre>{{stringify(item.rows)}}</pre> -->
+          <google-chart 
+            type='line' 
+              options="{{item.options}}" 
+              cols="{{item.cols}}" 
+              rows="{{item.rows}}">
+          </google-chart>
+        </template>
+      </template>
       <div id="linechart_material" width="400px" height="400px"></div>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per
-        in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
     </div>
   </template>
 
@@ -38,22 +45,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     class SummationView extends Polymer.Element {
       static get is() { return 'summation-view'; }
 
+
       static get properties() {
 
         return {
-          rows: {
+          threads: {
             type: Array,
-            value: [[1, 2, 31], [2, 4, 28], [3, 8, 31]]
-          },
-          cols: {
-            type: Array,
-            value: [{ label: "index", type: "number" }, { label: "a", type: "number" }, { "label": "b", "type": "number" }]
-          },
-          options: {
-            type: Object,
-            value: { "title": "Distribution of days in 2001Q1" }
+            value: []
           }
         }
+      }
+
+      stringify(text) {
+        return JSON.stringify(text);
       }
 
       /** 
@@ -80,7 +84,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             [
               {
                 series: "a",
-                data: [this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), 117, 342, 308, 182, 911, 22, 804]
+                data: [117, this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), 342, 308, 182, 911, 22, 804]
               },
               {
                 series: "b",
@@ -105,99 +109,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       translateFromWsToChartFormat(wsData) {
 
-        return wsData.threads.map( thread => {
+        return wsData.threads.map(thread => {
+          console.log("thread: ", thread);
           let chartData = {
             rows: [],
             cols: [],
             options: {}
           };
           // assume there's always at least one series in a thread
-          let series1 = thread[0];
-          chartData.cols.push([]);
-          thread.forEach( series => {
-            chartData.cols[0].push({label: series.series, type: 'number'});
+          chartData.cols.push({ label: 'index', type: 'number' });
+          thread.forEach((series) => {
+            chartData.cols.push({ label: series.series, type: 'number' });
           });
-          series1.data.forEach((dataVal, index) => {
+          thread[0].data.forEach((dataVal, index) => {
             chartData.rows.push([index]);
-            thread.forEach( series => {
-              chartData.rows[index].push(series.data[index]);
+            thread.forEach(series => {
+            chartData.rows[index].push(series.data[index]);
             });
           });
 
           return chartData;
         });
-
-        // goal: 
-        // [
-        //   ['Year', 'Sales', 'Expenses'],
-        //   ['2004',  1000,      400],
-        //   ['2005',  1170,      460],
-        //   ['2006',  660,       1120],
-        //   ['2007',  1030,      540]
-        // ]
-
       }
 
       tempChangeData() {
-
-        // this.set('rows', [
-        //   ["Jan", this.getRandomVal(31)],
-        //   ["Feb", this.getRandomVal(28)],
-        //   ["Mar", this.getRandomVal(31)]
-        // ]);
-
-        // TODO: set data to result of...
         let translatedData = this.translateFromWsToChartFormat(this.getStubData());
-        this.set('rows', translatedData[0].rows);
-        this.set('cols', translatedData[0].cols);
-
+        this.set('threads', translatedData);
+        console.log("translatedData: ", translatedData);
         setTimeout(() => this.tempChangeData(), 4 * 1000);
       }
-
-      // loadInitChart () {
-
-      //   // google.charts.load('current', {'packages':['line']});
-      //   google.charts.setOnLoadCallback(drawChart);
-
-      //   function drawChart() {
-
-      //     var data = new google.visualization.DataTable();
-      //     data.addColumn('number', 'Day');
-      //     data.addColumn('number', 'Guardians of the Galaxy');
-      //     data.addColumn('number', 'The Avengers');
-      //     data.addColumn('number', 'Transformers: Age of Extinction');
-
-      //     data.addRows([
-      //       [1,  37.8, 80.8, 41.8],
-      //       [2,  30.9, 69.5, 32.4],
-      //       [3,  25.4,   57, 25.7],
-      //       [4,  11.7, 18.8, 10.5],
-      //       [5,  11.9, 17.6, 10.4],
-      //       [6,   8.8, 13.6,  7.7],
-      //       [7,   7.6, 12.3,  9.6],
-      //       [8,  12.3, 29.2, 10.6],
-      //       [9,  16.9, 42.9, 14.8],
-      //       [10, 12.8, 30.9, 11.6],
-      //       [11,  5.3,  7.9,  4.7],
-      //       [12,  6.6,  8.4,  5.2],
-      //       [13,  4.8,  6.3,  3.6],
-      //       [14,  4.2,  6.2,  3.4]
-      //     ]);
-
-      //     var options = {
-      //       chart: {
-      //         title: 'Box Office Earnings in First Two Weeks of Opening',
-      //         subtitle: 'in millions of dollars (USD)'
-      //       },
-      //       width: 900,
-      //       height: 500
-      //     };
-
-      //     var chart = new google.charts.Line(document.getElementById('linechart_material'));
-
-      //     chart.draw(data, google.charts.Line.convertOptions(options));
-      //   }
-      // }
 
     }
 
