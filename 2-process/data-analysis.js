@@ -23,9 +23,11 @@ class DataAnalysis {
                     return threadSeries.series === series; 
                 });
                 if (tempThreadSeriesIndex > -1) {
-                    threadSeriesIndex = tempThreadSeries;
+                    threadSeriesIndex = tempThreadSeriesIndex;
+                    return true;
+                } else {
+                    return false;
                 }
-                return tempThreadSeriesIndex;
             });
 
             if (threadIndex > -1) {
@@ -39,7 +41,7 @@ class DataAnalysis {
                 threadIndex = this.processedData.threads.length;
                 this.processedData.threads.push([{
                     series: series,
-                    data: [this.rawData[series]]
+                    data: this.rawData[series]
                 }]);
             }
             
@@ -172,6 +174,7 @@ class DataAnalysis {
                         existingSeriesSubscription.subscriptionCallback({
                             action: 'update',
                             thread: threadIndex,
+                            series: series, // TODO: series is not defined!
                             data: newData
                         });
                     }
