@@ -1,6 +1,6 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/StreamCorrelationapp.html",
+  "shell": "src/StreamCorrelationApp.html",
   "fragments": [
     "src/SummationView.html",
     "src/NormalView.html",
