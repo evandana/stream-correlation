@@ -1,0 +1,56 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/google-chart/google-chart.html">
+
+<dom-module id="datasource-websocket">
+  <script>
+    class DatasourceWebsocket extends Polymer.Element {
+      static get is() { return 'datasource-websocket'; }
+
+      static get properties() {
+
+        return {}
+      }
+
+      /** 
+       * Native lifecycle method
+       **/
+      connectedCallback() {
+        super.connectedCallback();
+
+        this.updateData();
+      }
+
+
+      getRandomVal(max) {
+        return Math.round(Math.random() * max);
+      }
+
+      updateData() {
+
+        console.log('sending data update');
+
+        this.dispatchEvent(new CustomEvent('data-update', {detail: 
+            [{"rows":[[0,this.getRandomVal(1000),273],[1,884,89],[2,81,118],[3,117,88],[4,342,379],[5,308,630],[6,182,838],[7,911,707],[8,22,630],[9,804,571]],"cols":[[{"label":"a","type":"number"},{"label":"b","type":"number"}]],"options":{}},{"rows":[[0,273],[1,89],[2,118],[3,485],[4,529],[5,630],[6,838],[7,707],[8,630],[9,571]],"cols":[[{"label":"c","type":"number"}]],"options":{}},{"rows":[[0,122],[1,634],[2,440],[3,58],[4,210],[5,387],[6,485],[7,481],[8,462],[9,143]],"cols":[[{"label":"d","type":"number"}]],"options":{}}]    
+        }));
+
+        setTimeout(() => {
+            this.updateData();
+        }, 2000);
+      }
+
+    }
+
+    window.customElements.define(DatasourceWebsocket.is, DatasourceWebsocket);
+  </script>
+</dom-module>
