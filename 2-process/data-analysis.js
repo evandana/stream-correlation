@@ -90,10 +90,6 @@ class DataAnalysis {
         }
     }
 
-    sendUpdate (data) {
-        console.log('sendUpdate');
-    }
-
     subscribe(seriesArray, connectionId, subscriptionCallback) {
 
         seriesArray.forEach(series => {
@@ -152,15 +148,15 @@ class DataAnalysis {
             }, []) ;
 
         
-        console.log('processedData', JSON.stringify(this.processedData));
+        // console.log('processedData', JSON.stringify(this.processedData));
 
         threadIndices.forEach(threadIndex => {
 
-            console.log('processedData', JSON.stringify({
-                action: 'thread',
-                thread: threadIndex,
-                data: this.processedData.threads[threadIndex]
-            }));
+            // console.log('processedData', JSON.stringify({
+            //     action: 'thread',
+            //     thread: threadIndex,
+            //     data: this.processedData.threads[threadIndex]
+            // }));
 
             if (this.subscriptions[series]) {
                 this.subscriptions[series].forEach(existingSeriesSubscription => {

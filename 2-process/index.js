@@ -29,7 +29,7 @@ client.on('connect', function(connection) {
     });
     connection.on('message', function(message) {
 
-        console.log("\n" + 'received from data source' + "\n" + JSON.stringify(message) + "\n");
+        // console.log("\n" + 'received from data source' + "\n" + JSON.stringify(message) + "\n");
 
         if (message.type === 'utf8') {
             
@@ -66,7 +66,7 @@ client.connect('ws://localhost:8080/', 'echo-protocol');
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
-    response.writeHead(404);
+    response.writeHead(200);
     response.end();
 });
 server.listen(8090, function() {
@@ -80,7 +80,7 @@ wsServer = new WebSocketServer({
     // facilities built into the protocol and the browser.  You should
     // *always* verify the connection's origin and decide whether or not
     // to accept it.
-    autoAcceptConnections: false
+    autoAcceptConnections: true
 });
 
 wsServer.on('request', function(request) {
