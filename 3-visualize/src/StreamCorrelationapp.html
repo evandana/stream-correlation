@@ -24,6 +24,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
+<link rel="import" href="datasource-websocket.html">
+
 <link rel="lazy-import" href="SummationView.html">
 <link rel="lazy-import" href="NormalView.html">
 <link rel="lazy-import" href="my-view3.html">
@@ -82,6 +84,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         tail="{{subroute}}">
     </app-route>
 
+    <datasource-websocket on-data-update="handleDataUpdate"></datasource-websocket>
+
     <app-drawer-layout fullbleed narrow="{{narrow}}">
       <!-- Drawer content -->
       <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
@@ -108,7 +112,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
           <summation-view name="view1"></summation-view>
-          <normal-view name="view2"></normal-view>
+          <normal-view name="view2" data={{threadCharts}}></normal-view>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
@@ -170,6 +174,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _showPage404() {
         this.page = 'view404';
       }
+
+      handleDataUpdate (data) {
+        this.set('threadCharts', data.detail);
+      }
+
     }
 
     window.customElements.define(StreamCorrelationApp.is, StreamCorrelationApp);

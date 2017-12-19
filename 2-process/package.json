@@ -5,10 +5,11 @@
   "repository": "https://github.com/evandana/stream-correlation",
   "author": "Evan Dana <evan.writes.code@gmail.com>",
   "license": "MIT",
-  "scripts":{
+  "scripts": {
     "start": "node ./index.js"
   },
   "dependencies": {
-    "websocket": "^1.0.25"
+    "websocket": "^1.0.25",
+    "ws": "^3.3.3"
   }
 }

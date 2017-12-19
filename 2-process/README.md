@@ -39,7 +39,7 @@
 ```json
 {
 	"type": "utf8",
-	"utf8Data": "{\"action\":\"ACTION\",\"series\":\"c\",\"data\":DATA_OBJECT}"
+	"utf8Data": "{\"action\":\"ACTION\",\"series\":[\"c\"],\"data\":DATA_OBJECT}"
 }
 ```
 
