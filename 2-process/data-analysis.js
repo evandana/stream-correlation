@@ -2,7 +2,7 @@ class DataAnalysis {
 
     constructor() {
         console.log('data-analysis started');
-    
+
         this.rawData = {};
         this.processedData = {
             threadMapping: {},
@@ -11,16 +11,16 @@ class DataAnalysis {
         this.subscriptions = {};
 
         this.DATA_LENGTH = 10;
-    
-    }    
 
-    processData (seriesArray, data) {
+    }
+
+    processData(seriesArray, updatedData, updatedSeries) {
 
         seriesArray.forEach(series => {
             var threadSeriesIndex = null;
             let threadIndex = this.processedData.threads.findIndex(thread => {
                 let tempThreadSeriesIndex = thread.findIndex(threadSeries => {
-                    return threadSeries.series === series; 
+                    return threadSeries.series === series;
                 });
                 if (tempThreadSeriesIndex > -1) {
                     threadSeriesIndex = tempThreadSeriesIndex;
@@ -33,7 +33,7 @@ class DataAnalysis {
             if (threadIndex > -1) {
                 if (threadSeriesIndex > -1) {
                     this.processedData.threads[threadIndex][threadSeriesIndex] = {
-                        series: series, 
+                        series: series,
                         data: this.rawData[series]
                     };
                 }
@@ -44,14 +44,14 @@ class DataAnalysis {
                     data: this.rawData[series]
                 }]);
             }
-            
+
             this.processedData.threadMapping[series] = threadIndex;
         });
 
-        this.updateSubscribers(seriesArray, data);
+        this.updateSubscribers(seriesArray, updatedData, updatedSeries);
     }
 
-    replaceSeries (detail) {
+    replaceSeries(detail) {
 
         // console.log('replaceSeries', JSON.stringify(detail));
 
@@ -65,9 +65,7 @@ class DataAnalysis {
         }
     }
 
-    updateSeries (detail) {
-        
-        // console.log('updateSeries', JSON.stringify(detail));
+    updateSeries(detail) {
 
         let series = detail.series;
         let data = detail.data;
@@ -77,16 +75,16 @@ class DataAnalysis {
         }
 
         let len = this.rawData[series].length;
-        
+
         if (len >= this.DATA_LENGTH) {
-            this.rawData[series].shift();    
+            this.rawData[series].shift();
         }
-        
+
         this.rawData[series].push(data);
 
 
         if (series) {
-            this.processData([series], data);
+            this.processData([series], data, series);
         }
     }
 
@@ -100,85 +98,88 @@ class DataAnalysis {
                 this.subscriptions[series] = [];
             }
 
-            let existingSeriesSubscription = subSeries.find(existingSeriesSubscription => {
+            let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
                 return existingSubscription.connectionId === connectionId;
             });
 
             if (!existingSeriesSubscription) {
-                this.subscriptions[series].push({id: connectionId, callback: subscriptionCallback});
+                this.subscriptions[series].push({ id: connectionId, subscriptionCallback: subscriptionCallback });
             } else {
-                this.subscriptions[series][this.subscriptions[series].indexOf(existingConnectionId)] = {id: connectionId, callback: subscriptionCallback};
+                this.subscriptions[series][this.subscriptions[series].indexOf(connectionId)] = { id: connectionId, subscriptionCallback: subscriptionCallback };
             }
 
         });
 
         console.log('subscribe');
     }
-    
+
     unsubscribe(series, connectionId) {
-        if (!this.subscriptions[series] ) {
-            return ;
+        if (!this.subscriptions[series]) {
+            return;
         }
-        
-        let existingSeriesSubscription = this.subscriptions[series].find( existingSeriesSubscription => {
+
+        let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
             return existingSeriesSubscription.connectionId = connectionId;
         });
-        
+
         if (existingSeriesSubscription) {
             let index = this.subscriptions[series].indexOf(existingSeriesSubscription);
             this.subscriptions[series].splice(index, 1);
         }
     }
 
-    getThread (series) {
+    getThread(series) {
         return this.processedData.threadMapping[series];
     }
 
-    updateSubscribers(seriesArray, newData) {
+    updateSubscribers(seriesArray, updatedData, updatedSeries) {
 
-        console.log('update subscribers');
+        if (this.subscriptions && Object.keys(this.subscriptions).length > 0) {
+            console.log('update subscribers');
 
-        let threadIndices = seriesArray.map(series => this.getThread(series))
-            .sort()
-            .reduce((agg, curr) => {
-                if (agg.indexOf(curr) > -1) {
-                    agg.push(curr);
-                } 
-                return agg;
-            }, []) ;
-
-        
-        // console.log('processedData', JSON.stringify(this.processedData));
-
-        threadIndices.forEach(threadIndex => {
-
-            // console.log('processedData', JSON.stringify({
-            //     action: 'thread',
-            //     thread: threadIndex,
-            //     data: this.processedData.threads[threadIndex]
-            // }));
-
-            if (this.subscriptions[series]) {
-                this.subscriptions[series].forEach(existingSeriesSubscription => {
-                    existingSeriesSubscription.subscriptionCallback({
-                        action: 'thread',
-                        thread: threadIndex,
-                        data: this.processedData.threads[threadIndex]
-                    });
-
-                    if (newData) {
-                        existingSeriesSubscription.subscriptionCallback({
-                            action: 'update',
-                            thread: threadIndex,
-                            series: series, // TODO: series is not defined!
-                            data: newData
-                        });
+            let threadIndices = seriesArray.map(series => this.getThread(series))
+                .sort()
+                .reduce((agg, curr) => {
+                    if (agg.indexOf(curr) < 0) {
+                        agg.push(curr);
                     }
-                });
-            }
+                    return agg;
+                }, []);
 
-        });
+            let subscribers = seriesArray.map(series => {
+                return this.subscriptions[series];
+            }).reduce((agg, curr) => {
+                return agg.concat(curr);
+            }, []);
+
+            threadIndices.forEach(threadIndex => {
+
+                if (subscribers) {
+                    subscribers.forEach(existingSeriesSubscription => {
+                        if (existingSeriesSubscription) {
+
+                            existingSeriesSubscription.subscriptionCallback({
+                                action: 'thread',
+                                thread: threadIndex,
+                                data: this.processedData.threads[threadIndex]
+                            });
+
+                            if (updatedData) {
+                                existingSeriesSubscription.subscriptionCallback({
+                                    action: 'update',
+                                    thread: threadIndex,
+                                    series: updatedSeries,
+                                    data: updatedData
+                                });
+                            }
+                        }
+                    });
+                }
+
+            });
+        }
     }
+
 
 };
 

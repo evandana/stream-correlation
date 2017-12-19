@@ -11,22 +11,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="../bower_components/google-chart/google-chart.html">
-
-<link rel="import" href="../bower_components/web-socket/web-socket.html">
+<link rel="import" href="../bower_components/websocket-component/websocket-component.html">
 
 <dom-module id="datasource-websocket">
     <template>
-        <web-socket 
+        <websocket-component
             id="websocket"
-            auto
             url="ws://127.0.0.1:8090"
-            state="{{wsState}}"
-            last-request="{{request}}"
-            last-response="{{_handleResponse}}"
-            last-error="{{error}}"
-            verbose
+            protocols=""
+            status="{{wsState}}"
+            auto>
             >
-        </web-socket>
+        </websocket-component>
     </template>
     <script>
         class DatasourceWebsocket extends Polymer.Element {
@@ -53,9 +49,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     console.log('state', this.wsState);
                     this.$.websocket.send(JSON.stringify({
                         "type": "utf8",
-                        "utf8Data": "{\"action\":\"subscribe\",\"series\":[\"a\",\"b\"],\"data\":DATA_OBJECT}"
+                        "utf8Data": "{\"action\":\"subscribe\",\"series\":[\"a\",\"b\"],\"data\":\[\"a\",\"b\"]}"
                     }));
-                },1000)
+                }, 5000)
 
                 this.updateData();
             }
