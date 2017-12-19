@@ -37,10 +37,10 @@ client.on('connect', function(connection) {
 
             switch (details.action) {
                 case 'update':
-                    dataAnalysis.updateSeries(details.data);
+                    dataAnalysis.updateSeries(details);
                     break;
                 case 'series':
-                    dataAnalysis.replaceSeries(details.data);
+                    dataAnalysis.replaceSeries(details);
                     break;
             } 
         }
