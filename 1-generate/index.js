@@ -4,7 +4,8 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 
-var DataSimulator = new require('./data-simulator');
+var DataSimulator = require('./data-simulator');
+var dataSim = new DataSimulator();
  
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -51,7 +52,7 @@ wsServer.on('request', function(request) {
             if (details.action === 'subscribe') {
                 console.log('subscribing: ', JSON.stringify(details.data));
                 // connection.sendUTF('subscription request received');
-                DataSimulator.subscribe(details.data, sendData);
+                dataSim.subscribe(details.data, sendData);
             }
         }
         else if (message.type === 'binary') {

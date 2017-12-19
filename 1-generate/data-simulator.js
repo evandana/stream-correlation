@@ -1,77 +1,76 @@
-module.exports = (function () {
-    console.log('data-sim started');
+class DataSimulator {
 
-    const SERIES_IDS = ['a', 'b', 'c', 'd'];
-    const DATA_LENGTH = 10;
-    const DATA_INTERVAL = 1000*2;
+    constructor() {
+        console.log('data-sim started');
+    
+        this.SERIES_IDS = ['a', 'b', 'c', 'd'];
+        this.DATA_LENGTH = 10;
+        this.DATA_INTERVAL = 1000*2;
+    
+        this.allData = {};
+        this.timers = {};
+        this.subscriptions = {};
+    
+        // set on subscribe call
+        var callback = function () {};
+    
+        this.SERIES_IDS.forEach(id => {
+            // init data vals for this var
+            this.allData[id] = [];
+            this.subscriptions[id] = [];
+            this.flowData(id);
+        });
 
-    var allData = {};
-    var timers = {};
-    var subscriptions = {};
+    }    
 
-    // set on subscribe call
-    var callback = function () {};
-
-    SERIES_IDS.forEach(id => {
-        // init data vals for this var
-        allData[id] = [];
-        subscriptions[id] = [];
-        flowData(id);
-    });
-
-    return {
-        subscribe: subscribe
-    };
-
-
-    function flowData (id) {
+    flowData (id) {
 
         // remove first, if array is too long
-        if (allData[id].length >= DATA_LENGTH) {
-            allData[id].shift();
+        if (this.allData[id].length >= this.DATA_LENGTH) {
+            this.allData[id].shift();
         }
         
         // add new val
         let newVal = Math.round(Math.random()*1000);
 
-        allData[id].push(newVal);
+        this.allData[id].push(newVal);
 
-        if (subscriptions[id] && subscriptions[id].length) {
-            subscriptions[id].forEach(subscriptionCallback => {
+        if (this.subscriptions[id] && this.subscriptions[id].length) {
+            this.subscriptions[id].forEach(subscriptionCallback => {
                 // push new val to ws
                 subscriptionCallback(
                     JSON.stringify({
                         action: 'update',
-                        name: id,
-                        data: [ newVal ]
+                        series: id,
+                        data: newVal
                     })
                 );
 
-                // push new val to ws
+                // push all vals for that series to ws
                 subscriptionCallback(
                     JSON.stringify({
                         action: 'series',
-                        name: id,
-                        data: allData[id]
+                        series: id,
+                        data: this.allData[id]
                     })
                 );
             });
         }
 
-        console.log(id, ': ', allData[id]);
+        console.log(id, ': ', this.allData[id]);
 
-        timers[id] = setTimeout(() => flowData(id), DATA_INTERVAL);
+        this.timers[id] = setTimeout(() => this.flowData(id), this.DATA_INTERVAL);
     }
 
-    function subscribe ( seriesArray, subscriptionCallback ) {
+    subscribe ( seriesArray, subscriptionCallback ) {
         // send all
         subscriptionCallback(JSON.stringify({
             action: 'init',
             data: seriesArray.map(series => {
-                if (subscriptions[series]) {
+                if (this.subscriptions[series]) {
                     return { 
                         name: series, 
-                        data: allData[series]
+                        data: this.allData[series]
                     };
                 }
             })
@@ -79,10 +78,12 @@ module.exports = (function () {
 
         seriesArray.forEach(series => {
             // send per series
-            if (subscriptions[series]) {
-                subscriptions[series].push(subscriptionCallback);
+            if (this.subscriptions[series]) {
+                this.subscriptions[series].push(subscriptionCallback);
             }
         });
     }
 
-})();
+};
+
+module.exports = DataSimulator;
