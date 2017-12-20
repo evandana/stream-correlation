@@ -22,7 +22,7 @@ class DataAnalysis {
                 let tempThreadSeriesIndex = thread.findIndex(threadSeries => {
                     return threadSeries.series === series;
                 });
-                if (tempThreadSeriesIndex > -1) {
+                if (tempThreadSeriesIndex !== null && tempThreadSeriesIndex > -1) {
                     threadSeriesIndex = tempThreadSeriesIndex;
                     return true;
                 } else {
@@ -30,12 +30,25 @@ class DataAnalysis {
                 }
             });
 
-            if (threadIndex > -1) {
-                if (threadSeriesIndex > -1) {
+            if (series === 'c') {
+                threadIndex = 0;
+                // threadSeriesIndex = -1;
+            }
+
+            // if thread exists already
+            if (threadIndex !== null && threadIndex > -1) {
+                // if series exists in thread already
+                if (threadSeriesIndex !== null && threadSeriesIndex > -1) {
                     this.processedData.threads[threadIndex][threadSeriesIndex] = {
                         series: series,
                         data: this.rawData[series]
                     };
+                // if series doesn't yet exist in thread
+                } else {
+                    this.processedData.threads[threadIndex].push({
+                        series: series,
+                        data: this.rawData[series]
+                    });
                 }
             } else {
                 threadIndex = this.processedData.threads.length;
@@ -152,23 +165,27 @@ class DataAnalysis {
                 return agg.concat(curr);
             }, []);
 
+            console.log('threads: ' + "\n\n", JSON.stringify(this.processedData));
+
             threadIndices.forEach(threadIndex => {
 
                 if (subscribers) {
                     subscribers.forEach(existingSeriesSubscription => {
                         if (existingSeriesSubscription) {
 
+                            console.log('this.processedData.threads[threadIndex]', JSON.stringify(this.processedData.threads[threadIndex]));
+
                             existingSeriesSubscription.subscriptionCallback({
                                 action: 'thread',
-                                thread: threadIndex,
+                                threadId: threadIndex, // TODO: make thread hooked by a uuid instead of index
                                 data: this.processedData.threads[threadIndex]
                             });
 
                             if (updatedData) {
                                 existingSeriesSubscription.subscriptionCallback({
                                     action: 'update',
-                                    thread: threadIndex,
-                                    series: updatedSeries,
+                                    threadId: threadIndex,
+                                    seriesId: updatedSeries,
                                     data: updatedData
                                 });
                             }

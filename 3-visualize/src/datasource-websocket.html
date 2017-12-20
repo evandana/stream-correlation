@@ -15,12 +15,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <dom-module id="datasource-websocket">
     <template>
-        <websocket-component
-            id="websocket"
-            url="ws://127.0.0.1:8090"
-            protocols=""
-            status="{{wsState}}"
-            auto>
+        <websocket-component id="websocket" url="ws://127.0.0.1:8090" protocols="" status="{{wsState}}" auto>
             >
         </websocket-component>
     </template>
@@ -33,49 +28,131 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 return {
                     wsState: {
                         type: Number,
-                        observer: '_handleUpdatedWsState',
                         notify: true
+                    },
+                    subscribed: {
+                        type: Boolean,
+                        value: false
+                    },
+                    wsOpen: {
+                        type: Boolean,
+                        value: false
+                    },
+                    wsReadyForMessages: {
+                        type: Boolean,
+                        computed: '_calculateWsReadyForMessages(wsState, wsOpen)',
+                        observer: '_handleReadyForMessagesChange'
                     }
                 };
             }
+
+            // static get observers() {
+            //     return [
+            //         '_calculateWsReadyForMessages(preload, src, size)'
+            //     ]
+            // }
 
             /** 
              * Native lifecycle method
              **/
             connectedCallback() {
                 super.connectedCallback();
+            }
 
-                setTimeout(() => {
-                    console.log('state', this.wsState);
+            disconnectedCallback() {
+                super.disconnectedCallback();
+
+                // close websocket on detatch
+                if (this.$.websocket.wsState > -1) {
+                    this.$.websocket.close();
+                }
+            }
+
+            ready() {
+                super.ready();
+
+                this.$.websocket.addEventListener('websocket-open', () => {
+                    this.set('wsOpen', true);
+                });
+                this.$.websocket.addEventListener('websocket-message', (msg) => {
+                    this._handleWebsocketMessage(msg);
+                });
+            }
+
+            _handleWebsocketMessage(msg) {
+                console.log('message', msg);
+
+                var parsedMsg = JSON.parse(msg.detail.data).data;
+
+                switch (parsedMsg.action) {
+                    case 'thread':
+                        // translate data and update
+                        this._updateData(parsedMsg.threadId, this._translateThreadFromWsToChartFormat(parsedMsg.data));
+                        break;
+                    case 'update':
+                        break;
+                }
+            }
+
+            _translateThreadFromWsToChartFormat(threadData) {
+
+                let chartData = {
+                    rows: [],
+                    cols: [],
+                    options: {}
+                };
+                // assume there's always at least one series in a thread
+                chartData.cols.push({ label: 'index', type: 'number' });
+                threadData.forEach((series) => {
+                    chartData.cols.push({ label: series.series, type: 'number' });
+                });
+                threadData[0].data.forEach((dataVal, index) => {
+                    chartData.rows.push([index]);
+                    threadData.forEach(series => {
+                        chartData.rows[index].push(series.data[index]);
+                    });
+                });
+
+                return chartData;
+            }
+
+            _calculateWsReadyForMessages(wsState, wsOpen) {
+                let updatedWsState = wsState > -1 && wsOpen ? true : false;
+
+                // if (this.wsReadyForMessages !== updatedWsState) {
+                //     this._handleReadyForMessagesChange(updatedWsState);
+                // }
+
+                return updatedWsState;
+            }
+
+            _handleReadyForMessagesChange(updatedReadyForMessages) {
+
+                if (updatedReadyForMessages && !this.subscribed) {
+                    // subscribe
                     this.$.websocket.send(JSON.stringify({
                         "type": "utf8",
                         "utf8Data": "{\"action\":\"subscribe\",\"series\":[\"a\",\"b\"],\"data\":\[\"a\",\"b\"]}"
                     }));
-                }, 5000)
-
-                this.updateData();
+                    this.set('subscribed', true);
+                }
             }
 
-            _handleUpdatedWsState (wsState) {
-                console.log('websocket wsState: ', wsState);
-            }
-
-            getRandomVal(max) {
+            _getRandomVal(max) {
                 return Math.round(Math.random() * max);
             }
 
-            updateData() {
+            _updateData(threadId, threadData) {
 
                 console.log('sending data update');
 
                 this.dispatchEvent(new CustomEvent('data-update', {
-                    detail:
-                    [{ "rows": [[0, this.getRandomVal(1000), 273], [1, 884, 89], [2, 81, 118], [3, 117, 88], [4, 342, 379], [5, 308, 630], [6, 182, 838], [7, 911, 707], [8, 22, 630], [9, 804, 571]], "cols": [[{ "label": "a", "type": "number" }, { "label": "b", "type": "number" }]], "options": {} }, { "rows": [[0, 273], [1, 89], [2, 118], [3, 485], [4, 529], [5, 630], [6, 838], [7, 707], [8, 630], [9, 571]], "cols": [[{ "label": "c", "type": "number" }]], "options": {} }, { "rows": [[0, 122], [1, 634], [2, 440], [3, 58], [4, 210], [5, 387], [6, 485], [7, 481], [8, 462], [9, 143]], "cols": [[{ "label": "d", "type": "number" }]], "options": {} }]
+                    detail: {
+                        threadId: threadId,
+                        threadData: threadData
+                    }
+                    // [{ "rows": [[0, this._getRandomVal(1000), 273], [1, 884, 89], [2, 81, 118], [3, 117, 88], [4, 342, 379], [5, 308, 630], [6, 182, 838], [7, 911, 707], [8, 22, 630], [9, 804, 571]], "cols": [[{ "label": "a", "type": "number" }, { "label": "b", "type": "number" }]], "options": {} }, { "rows": [[0, 273], [1, 89], [2, 118], [3, 485], [4, 529], [5, 630], [6, 838], [7, 707], [8, 630], [9, 571]], "cols": [[{ "label": "c", "type": "number" }]], "options": {} }, { "rows": [[0, 122], [1, 634], [2, 440], [3, 58], [4, 210], [5, 387], [6, 485], [7, 481], [8, 462], [9, 143]], "cols": [[{ "label": "d", "type": "number" }]], "options": {} }]
                 }));
-
-                setTimeout(() => {
-                    this.updateData();
-                }, 2000);
             }
 
         }

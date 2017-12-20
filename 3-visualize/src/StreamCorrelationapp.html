@@ -111,8 +111,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <summation-view name="view1"></summation-view>
-          <normal-view name="view2" data={{threadCharts}}></normal-view>
+          <summation-view name="view1" threads={{threadCharts}}></summation-view>
+          <normal-view name="view2" threads={{threadCharts}}></normal-view>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
@@ -132,6 +132,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           },
           routeData: Object,
           subroute: String,
+          threadCharts: {
+            type: Array,
+            value: []
+          },
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
           rootPath: String,
@@ -175,10 +179,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.page = 'view404';
       }
 
-      handleDataUpdate (data) {
-        this.set('threadCharts', data.detail);
-      }
+      handleDataUpdate (evt) {
+        let threadIndex = evt.detail.threadId;
+        let threadData = evt.detail.threadData;
 
+        if (this.threadCharts[threadIndex] !== 'undefined') {
+          let tempThreadCharts = Object.assign([],this.threadCharts);
+          tempThreadCharts[threadIndex] = threadData;
+          this.set('threadCharts', tempThreadCharts);
+        } else {
+          this.push('threadCharts', threadData);
+        }
+      }
     }
 
     window.customElements.define(StreamCorrelationApp.is, StreamCorrelationApp);

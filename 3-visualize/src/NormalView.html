@@ -1,4 +1,4 @@
- <!--
+<!--
 @license
 Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
@@ -10,7 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
- <link rel="import" href="../bower_components/google-chart/google-chart.html"> 
+<link rel="import" href="../bower_components/google-chart/google-chart.html">
 
 <dom-module id="normal-view">
   <template>
@@ -24,19 +24,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="circle">2</div>
-      <h1>Normal</h1>
-      <template is="dom-if" if={{cols.length}}>
-        <google-chart
-          type='line'
-          options="{{options}}"
-          cols="{{cols}}"
-          rows="{{rows}}"
-          >          
-        </google-chart>
+      <h1>Subscribe to Series 'a' and 'b'</h1>
+      <p>Show all "threads" that contain 'a' or 'b'</p>
+      <template is="dom-repeat" items="{{threads}}">
+        <template is="dom-if" if="{{item.cols.length}}">
+           <pre>{{stringify(item.cols)}}</pre>
+          <pre>{{stringify(item.rows)}}</pre> 
+          <google-chart 
+            type='line' 
+              options="{{item.options}}" 
+              cols="{{item.cols}}" 
+              rows="{{item.rows}}">
+          </google-chart>
+        </template>
       </template>
       <div id="linechart_material" width="400px" height="400px"></div>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
     </div>
   </template>
 
@@ -44,49 +46,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     class NormalView extends Polymer.Element {
       static get is() { return 'normal-view'; }
 
+
       static get properties() {
 
         return {
-          data: {
+          threads: {
             type: Array,
-            value: [[]],
-          },
-          rows: {
-            type: Array,
-            value: [[0,0,0]],
-            computed: '_getRows(data)'
-          },
-          cols: {
-            type: Array,
-            value: [{ label: "index", type: "number" }, { label: "a", type: "number" }, { "label": "b", "type": "number" }]
-          },
-          lockColConfig: {
-            type: Boolean,
-            value: false
-          },
-          options: {
-            type: Object,
-            value: { "title": "Distribution of days in 2001Q1" }
+            value: []
           }
         }
+      }
+
+      stringify(text) {
+        return JSON.stringify(text);
       }
 
       /** 
        * Native lifecycle method
        **/
-      connectedCallback  () {
+      connectedCallback() {
         super.connectedCallback();
-
-        // this.tempChangeData();
-      }
-
-      getRandomVal (max) {
-        return Math.round(Math.random()*max);
-      }
-
-      _getRows (data) {
-        let rows = data[0] && data[0].rows && data[0].rows.length ? data[0].rows : [[0,0,0]];
-        return rows;
       }
 
     }
