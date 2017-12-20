@@ -67,6 +67,8 @@ const wsServer = new WebSocket.Server({ port: 8090 });
 
 wsServer.on('connection', function connection(connection) {
   
+    var connected = true;
+
     connection.on('message', function(msg) {
 
         let message = JSON.parse(msg);
@@ -99,10 +101,22 @@ wsServer.on('connection', function connection(connection) {
     });
     connection.on('close', function(reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        connected = false;
     });
+    connection.on('error', function (err) {
+    if (err.code !== 'ECONNRESET') {
+        console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' forcibly disconnected.');
+        connected = false;
+        dataAnalysis.unsubscribe(details.data, connectionId);
+        // Ignore ECONNRESET and re throw anything else
+        // throw err
+    }
+})
 
     function sendData (obj) {
         // console.log('sending: ', "\t", str);
-        connection.send(JSON.stringify({type:'utf8', data: obj}));
+        if (connection && connected) {
+            connection.send(JSON.stringify({type:'utf8', data: obj}));
+        }
     } 
 });

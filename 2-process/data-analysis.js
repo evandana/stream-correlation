@@ -103,6 +103,13 @@ class DataAnalysis {
 
     subscribe(seriesArray, connectionId, subscriptionCallback) {
 
+        if (!connectionId || seriesArray.length < 1) {
+            console.log('unable to subscribe', connectionId, seriesArray);
+            return false;
+        }
+        
+        console.log('subscribing', connectionId, seriesArray);
+
         seriesArray.forEach(series => {
 
             let subSeries = this.subscriptions[series];
@@ -112,21 +119,23 @@ class DataAnalysis {
             }
 
             let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
-                return existingSubscription.connectionId === connectionId;
+                return existingSeriesSubscription.connectionId === connectionId;
             });
 
             if (!existingSeriesSubscription) {
-                this.subscriptions[series].push({ id: connectionId, subscriptionCallback: subscriptionCallback });
+                this.subscriptions[series].push({ connectionId: connectionId, subscriptionCallback: subscriptionCallback });
             } else {
-                this.subscriptions[series][this.subscriptions[series].indexOf(connectionId)] = { id: connectionId, subscriptionCallback: subscriptionCallback };
+                this.subscriptions[series][this.subscriptions[series].indexOf(connectionId)] = { connectionId: connectionId, subscriptionCallback: subscriptionCallback };
             }
 
         });
-
-        console.log('subscribe');
     }
 
     unsubscribe(series, connectionId) {
+
+        console.log('unsubscribing', connectionId);
+        debugger;
+
         if (!this.subscriptions[series]) {
             return;
         }

@@ -28,11 +28,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>Show all "threads" that contain 'a' or 'b'</p>
       <template is="dom-repeat" items="{{threads}}">
         <template is="dom-if" if="{{item.cols.length}}">
-           <pre>{{stringify(item.cols)}}</pre>
-          <pre>{{stringify(item.rows)}}</pre> 
+           <!--<pre>{{stringify(item.cols)}}</pre>
+          <pre>{{stringify(item.rows)}}</pre> -->
           <google-chart 
             type='line' 
-              options="{{item.options}}" 
+              options="{{chartOptions}}" 
               cols="{{item.cols}}" 
               rows="{{item.rows}}">
           </google-chart>
@@ -50,6 +50,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get properties() {
 
         return {
+          chartOptions: {
+            type: Object,
+            value: {
+              colors: ['#6c91c2', '#aaabbc', '#8b8982', '#373f47', '#c3c9e9']
+            }
+          },
           threads: {
             type: Array,
             value: []

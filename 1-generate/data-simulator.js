@@ -30,8 +30,16 @@ class DataSimulator {
             this.allData[id].shift();
         }
         
+        let newVal;
         // add new val
-        let newVal = Math.round(Math.random()*1000);
+        if (id === 'c') {
+            let lastIndexOfSeriesA = this.allData['a'].length - 1;
+            lastIndexOfSeriesA = lastIndexOfSeriesA < 9 ? lastIndexOfSeriesA - 1 : lastIndexOfSeriesA;
+            lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
+            newVal = this.allData['a'][lastIndexOfSeriesA] + Math.round(Math.random()*300) - 150;
+        } else {
+            newVal = Math.round(Math.random()*1000);
+        }
 
         this.allData[id].push(newVal);
 
