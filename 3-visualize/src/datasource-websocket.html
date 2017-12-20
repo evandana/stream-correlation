@@ -103,13 +103,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 };
                 // assume there's always at least one series in a thread
                 chartData.cols.push({ label: 'index', type: 'number' });
-                threadData.forEach((series) => {
-                    chartData.cols.push({ label: series.series, type: 'number' });
+
+                let threadKeys = Object.keys(threadData);
+
+                threadKeys.forEach((series) => {
+                    chartData.cols.push({ label: threadData[series].series, type: 'number' });
                 });
-                threadData[0].data.forEach((dataVal, index) => {
+                threadData[threadKeys[0]].data.forEach((dataVal, index) => {
                     chartData.rows.push([index]);
-                    threadData.forEach(series => {
-                        chartData.rows[index].push(series.data[index]);
+                    threadKeys.forEach(series => {
+                        chartData.rows[index].push(threadData[series].data[index]);
                     });
                 });
 

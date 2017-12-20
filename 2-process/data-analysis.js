@@ -6,57 +6,110 @@ class DataAnalysis {
         this.rawData = {};
         this.processedData = {
             threadMapping: {},
-            threads: []
+            threads: {}
         };
         this.subscriptions = {};
 
         this.DATA_LENGTH = 10;
+        this.CORRELATION_THRESHOLD = 0.8;
 
     }
 
+    calculateCorrelatedThreadIndices (rawData) {
+
+        let seriesKeys = Object.keys(rawData).sort();
+
+        let permutationPairMatrix = [
+            { 
+                id: 'a-b',
+                series: ['a', 'b'],
+                correlation: 0
+            },
+            { 
+                id: 'a-c',
+                series: ['a', 'c'],
+                correlation: 1
+            },
+            { 
+                id: 'b-c',
+                series: ['b', 'c'],
+                correlation: 0
+            }
+        ];
+
+        let threadIndexCounter = 0;
+        let threadIndexMapping = {};
+        let mappedSeriesNames = [];
+        
+        // add in individual series if not part of a combined thread
+
+        permutationPairMatrix.forEach(permutationPair => {
+            if (permutationPair.correlation >= this.CORRELATION_THRESHOLD) {
+                let threadSeriesIndexCounter = 0;
+                permutationPair.series.forEach(series => {
+                    threadIndexMapping[series] = {
+                        threadIndex: threadIndexCounter,
+                        threadSeriesIndex: threadSeriesIndexCounter++
+                    };
+                    mappedSeriesNames.push(series);
+                });
+                threadIndexCounter++;
+            }
+        });
+
+        seriesKeys.forEach(series => {
+            if (mappedSeriesNames.indexOf(series) < 0) {
+                threadIndexMapping[series] = {
+                    threadIndex: threadIndexCounter++,
+                    threadSeriesIndex: 0
+                };
+                mappedSeriesNames.push(series);
+            }
+        });
+
+        console.log('threadIndexMapping', JSON.stringify(threadIndexMapping));
+
+        return threadIndexMapping;
+        
+        // {
+        //     a: {
+        //         threadIndex: 0,
+        //         threadSeriesIndex: 0
+        //     },
+        //     b: {
+        //         threadIndex: 1,
+        //         threadSeriesIndex: 0
+        //     },
+        //     c: {
+        //         threadIndex: 0,
+        //         threadSeriesIndex: 1
+        //     }
+        // };
+
+    }
+
+    // called on a particular subset of series ids (seriesArray)
+    //  alldata might have series: a, b, c
+    //  process data might be called with: [a] then later with the others, when they are updated
+    // alldata has already been updated
     processData(seriesArray, updatedData, updatedSeries) {
 
-        seriesArray.forEach(series => {
-            var threadSeriesIndex = null;
-            let threadIndex = this.processedData.threads.findIndex(thread => {
-                let tempThreadSeriesIndex = thread.findIndex(threadSeries => {
-                    return threadSeries.series === series;
-                });
-                if (tempThreadSeriesIndex !== null && tempThreadSeriesIndex > -1) {
-                    threadSeriesIndex = tempThreadSeriesIndex;
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+        let correlatedThreadIndices = this.calculateCorrelatedThreadIndices(this.rawData);
 
-            if (series === 'c') {
-                threadIndex = 0;
-                // threadSeriesIndex = -1;
-            }
+        seriesArray.forEach(series => {
+
+            let threadIndex = correlatedThreadIndices[series].threadIndex;
+            let threadSeriesIndex = correlatedThreadIndices[series].threadSeriesIndex;
 
             // if thread exists already
-            if (threadIndex !== null && threadIndex > -1) {
-                // if series exists in thread already
-                if (threadSeriesIndex !== null && threadSeriesIndex > -1) {
-                    this.processedData.threads[threadIndex][threadSeriesIndex] = {
-                        series: series,
-                        data: this.rawData[series]
-                    };
-                // if series doesn't yet exist in thread
-                } else {
-                    this.processedData.threads[threadIndex].push({
-                        series: series,
-                        data: this.rawData[series]
-                    });
-                }
-            } else {
-                threadIndex = this.processedData.threads.length;
-                this.processedData.threads.push([{
-                    series: series,
-                    data: this.rawData[series]
-                }]);
+            if (!this.processedData.threads[threadIndex]) {
+                this.processedData.threads[threadIndex] = {};
             }
+            
+            this.processedData.threads[threadIndex][threadSeriesIndex] = {
+                series: series,
+                data: this.rawData[series]
+            };
 
             this.processedData.threadMapping[series] = threadIndex;
         });
@@ -174,7 +227,7 @@ class DataAnalysis {
                 return agg.concat(curr);
             }, []);
 
-            console.log('threads: ' + "\n\n", JSON.stringify(this.processedData));
+            console.log("\n\n", 'threads: ' + "\n", JSON.stringify(this.processedData), "\n\n");
 
             threadIndices.forEach(threadIndex => {
 
@@ -182,7 +235,7 @@ class DataAnalysis {
                     subscribers.forEach(existingSeriesSubscription => {
                         if (existingSeriesSubscription) {
 
-                            console.log('this.processedData.threads[threadIndex]', JSON.stringify(this.processedData.threads[threadIndex]));
+                            // console.log('this.processedData.threads[threadIndex]', JSON.stringify(this.processedData.threads[threadIndex]));
 
                             existingSeriesSubscription.subscriptionCallback({
                                 action: 'thread',

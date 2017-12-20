@@ -9,6 +9,7 @@
     "start": "node ./index.js"
   },
   "dependencies": {
+    "datalib": "^1.8.0",
     "websocket": "^1.0.25",
     "ws": "^3.3.3"
   }
