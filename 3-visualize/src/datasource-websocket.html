@@ -80,13 +80,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
 
             _handleWebsocketMessage(msg) {
-                console.log('message', msg);
 
                 var parsedMsg = JSON.parse(msg.detail.data).data;
 
                 switch (parsedMsg.action) {
                     case 'thread':
                         // translate data and update
+                        // console.log('thread ' + parsedMsg.threadId, parsedMsg.data);
                         this._updateData(parsedMsg.threadId, this._translateThreadFromWsToChartFormat(parsedMsg.data));
                         break;
                     case 'update':

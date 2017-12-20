@@ -3,7 +3,7 @@ class DataSimulator {
     constructor() {
         console.log('data-sim started');
     
-        this.SERIES_IDS = ['a', 'b', 'c', 'd'];
+        this.SERIES_IDS = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
         this.DATA_LENGTH = 20;
         this.DATA_INTERVAL = 1000*2;
     
@@ -37,6 +37,11 @@ class DataSimulator {
             lastIndexOfSeriesA = lastIndexOfSeriesA < 9 ? lastIndexOfSeriesA - 1 : lastIndexOfSeriesA;
             lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
             newVal = this.allData['a'][lastIndexOfSeriesA] + Math.round(Math.random()*300) - 150;
+        } else if (id === 'e') {
+            let lastIndexOfSeriesA = this.allData['a'].length - 1;
+            lastIndexOfSeriesA = lastIndexOfSeriesA < 9 ? lastIndexOfSeriesA - 1 : lastIndexOfSeriesA;
+            lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
+            newVal = this.allData['a'][lastIndexOfSeriesA] + Math.round(Math.random()*400) - 150;
         } else {
             newVal = Math.round(Math.random()*1000);
         }

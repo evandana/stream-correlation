@@ -48,7 +48,7 @@ client.on('connect', function(connection) {
 
     function sendSubscriptionRequests () {
         if (connection.connected) {
-            let series = ['a', 'b', 'c'];
+            let series = ['a', 'b', 'c', 'd', 'e', 'f'];
             connection.sendUTF(JSON.stringify({action: 'subscribe', data: series}));
         }
     }
