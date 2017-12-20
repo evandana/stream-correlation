@@ -1,7 +1,10 @@
+
 class DataAnalysis {
 
     constructor() {
         console.log('data-analysis started');
+        
+        this.CorrelationRank = require('./node_modules/correlation-rank');
 
         this.rawData = {};
         this.processedData = {
@@ -10,32 +13,46 @@ class DataAnalysis {
         };
         this.subscriptions = {};
 
-        this.DATA_LENGTH = 10;
+        this.DATA_LENGTH = 20;
         this.CORRELATION_THRESHOLD = 0.8;
 
+    }
+
+    calculateCorrelations(permutationPairMatrix) {
+        return permutationPairMatrix.map(pair => {
+            pair.correlation = Math.abs(this.CorrelationRank.rank(pair.data[0], pair.data[1]));
+            // console.log('correlation ', pair.id + ' : ' + pair.correlation);
+            return pair;
+        });
     }
 
     calculateCorrelatedThreadIndices (rawData) {
 
         let seriesKeys = Object.keys(rawData).sort();
 
-        let permutationPairMatrix = [
-            { 
-                id: 'a-b',
-                series: ['a', 'b'],
-                correlation: 0
-            },
-            { 
-                id: 'a-c',
-                series: ['a', 'c'],
-                correlation: 1
-            },
-            { 
-                id: 'b-c',
-                series: ['b', 'c'],
-                correlation: 0
-            }
-        ];
+        let permutationPairMatrix = [];
+        
+        let calculatedPairs = {};
+
+        seriesKeys.forEach(series => {
+            seriesKeys.forEach(seriesComparator => {
+                let key = series + '-' + seriesComparator;
+                let inverseKey = seriesComparator + '-' + series;
+                if (series !== seriesComparator && !calculatedPairs[inverseKey]) {
+
+                    permutationPairMatrix.push({
+                        id: key,
+                        series: [series, seriesComparator],
+                        data: [this.rawData[series], this.rawData[seriesComparator]]
+                    });
+
+                    // prevent a-c and c-a analysis
+                    calculatedPairs[key] = true;
+                }
+            });
+        });
+
+        let correlationPermutationPairMatrix = this.calculateCorrelations(permutationPairMatrix);
 
         let threadIndexCounter = 0;
         let threadIndexMapping = {};

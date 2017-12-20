@@ -4,7 +4,7 @@ class DataSimulator {
         console.log('data-sim started');
     
         this.SERIES_IDS = ['a', 'b', 'c', 'd'];
-        this.DATA_LENGTH = 10;
+        this.DATA_LENGTH = 20;
         this.DATA_INTERVAL = 1000*2;
     
         this.allData = {};
@@ -65,7 +65,7 @@ class DataSimulator {
             });
         }
 
-        console.log(id, ': ', this.allData[id]);
+        console.log(id, ': ', JSON.stringify(this.allData[id]));
 
         this.timers[id] = setTimeout(() => this.flowData(id), this.DATA_INTERVAL);
     }
