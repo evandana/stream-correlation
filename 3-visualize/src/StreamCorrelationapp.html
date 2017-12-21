@@ -84,7 +84,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         tail="{{subroute}}">
     </app-route>
 
-    <datasource-websocket on-data-update="handleDataUpdate"></datasource-websocket>
+    <datasource-websocket on-data-update="handleDataUpdate" on-correlation-update="handleCorrelationUpdate"></datasource-websocket>
 
     <app-drawer-layout fullbleed narrow="{{narrow}}">
       <!-- Drawer content -->
@@ -111,8 +111,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <summation-view name="view1" threads={{threadCharts}}></summation-view>
-          <normal-view name="view2" threads={{threadCharts}}></normal-view>
+          <summation-view name="view1" threads={{threadCharts}} correlation-data="{{correlationData}}"></summation-view>
+          <normal-view name="view2" threads={{threadCharts}} correlation-data="{{correlationData}}"></normal-view>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
@@ -183,13 +183,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         let threadIndex = evt.detail.threadId;
         let threadData = evt.detail.threadData;
 
-        if (this.threadCharts[threadIndex] !== 'undefined') {
+        let existingIndex = this.threadCharts.findIndex(chart => {
+            let existingCols = chart.cols.map(col => { delete col.p; return col;});
+            return JSON.stringify(chart.cols) === JSON.stringify(threadData.cols);
+        });
+
+        if (existingIndex > -1) {
           let tempThreadCharts = Object.assign([],this.threadCharts);
-          tempThreadCharts[threadIndex] = threadData;
+          tempThreadCharts[existingIndex] = threadData;
           this.set('threadCharts', tempThreadCharts);
         } else {
           this.push('threadCharts', threadData);
         }
+      }
+
+      handleCorrelationUpdate(evt) {
+        this.set('correlationData', evt.detail);
       }
     }
 

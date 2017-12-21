@@ -6,22 +6,44 @@ class DataAnalysis {
 
         this.CorrelationRank = require('./node_modules/correlation-rank');
 
+        this.dataNeedsRefresh = false;
+
         this.rawData = {};
         this.processedData = {
             threadMapping: {},
-            threads: {}
+            threads: [],
+            correlations: {}
         };
         this.subscriptions = {};
 
         this.DATA_LENGTH = 20;
-        this.CORRELATION_THRESHOLD = 0.8;
+        this.CORRELATION_THRESHOLD = 800;
+        this.DATA_PROCESSING_REFRESH_WAIT_PERIOD = 1 * 1000;
 
+        this.startPeriodicRefresh();
+
+    }
+
+    // periodic refresh allows for more controll over frequency of processing
+    startPeriodicRefresh() {
+        setTimeout(() => {
+
+            if (this.dataNeedsRefresh) {
+                this.processData();
+                this.dataNeedsRefresh = false;
+            }
+
+            this.startPeriodicRefresh();
+        }, this.DATA_PROCESSING_REFRESH_WAIT_PERIOD);
     }
 
     calculateCorrelations(permutationPairMatrix) {
         return permutationPairMatrix.map(pair => {
-            pair.correlation = Math.abs(this.CorrelationRank.rank(pair.data[0], pair.data[1]));
-            console.log('correlation ', pair.id + ' : ' + pair.correlation);
+            pair.correlation = Math.round(this.CorrelationRank.rank(pair.data[0], pair.data[1]) * 1000);
+            if (pair.correlation >= this.CORRELATION_THRESHOLD || pair.correlation <= this.CORRELATION_THRESHOLD * -1) {
+                // if (pair.id === 'a-c') {
+                console.log('correlation ', pair.id + ' : ' + pair.correlation);
+            }
             return pair;
         });
     }
@@ -66,12 +88,16 @@ class DataAnalysis {
 
         let correlationPermutationPairMatrix = this.calculateCorrelations(permutationPairMatrix);
 
+        // console.log("\n\n" + 'permutation correlation' + "\n", JSON.stringify(correlationPermutationPairMatrix), "\n\n");
+
+        this.processedData.correlations = correlationPermutationPairMatrix;
+
         let threadIndexCounter = 0;
         let threadIndexMapping = {};
         let mappedSeriesNames = [];
 
-        permutationPairMatrix.forEach(permutationPair => {
-            if (permutationPair.correlation >= this.CORRELATION_THRESHOLD) {
+        correlationPermutationPairMatrix.forEach(permutationPair => {
+            if (permutationPair.correlation >= this.CORRELATION_THRESHOLD || permutationPair.correlation <= this.CORRELATION_THRESHOLD * -1) {
                 let threadSeriesIndexCounter = 0;
                 permutationPair.series.forEach(series => {
 
@@ -111,11 +137,13 @@ class DataAnalysis {
 
     }
 
-    // called on a particular subset of series ids (seriesArray)
-    //  alldata might have series: a, b, c
-    //  process data might be called with: [a] then later with the others, when they are updated
+    // periodically call on all data
     // alldata has already been updated
-    processData(seriesArray, updatedData, updatedSeries) {
+    processData(updatedData, updatedSeries) {
+
+        console.log('----------------------------------------------------------------------------');
+
+        let seriesArray = Object.keys(this.rawData);
 
         let correlatedThreadIndices = this.calculateCorrelatedThreadIndices(this.rawData);
 
@@ -130,11 +158,11 @@ class DataAnalysis {
                 let threadSeriesIndex = threadSeriesIndexPair[1];
 
                 // if thread needs to be created
-                if (!this.processedData.threads[threadIndex]) {
-                    this.processedData.threads[threadIndex] = {};
+                if (!this.processedData.threads['i'+threadIndex]) {
+                    this.processedData.threads['i'+threadIndex] = {};
                 }
 
-                this.processedData.threads[threadIndex][threadSeriesIndex] = {
+                this.processedData.threads['i'+threadIndex]['i'+threadSeriesIndex] = {
                     series: series,
                     data: this.rawData[series]
                 };
@@ -160,7 +188,7 @@ class DataAnalysis {
         this.rawData[series] = data;
 
         if (series) {
-            this.processData([series]);
+            this.dataNeedsRefresh = true;
         }
     }
 
@@ -196,55 +224,74 @@ class DataAnalysis {
 
         console.log('subscribing', connectionId, seriesArray);
 
-        seriesArray.forEach(series => {
+        this.subscriptions[connectionId] = {
+            seriesArray: seriesArray,
+            subscriptionCallback: subscriptionCallback
+        };
 
-            let subSeries = this.subscriptions[series];
+        // seriesArray.forEach(series => {
 
-            if (!subSeries) {
-                this.subscriptions[series] = [];
-            }
+        //     let subSeries = this.subscriptions[series];
 
-            let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
-                return existingSeriesSubscription.connectionId === connectionId;
-            });
+        //     if (!subSeries) {
+        //         this.subscriptions[series] = [];
+        //     }
 
-            if (!existingSeriesSubscription) {
-                this.subscriptions[series].push({ connectionId: connectionId, subscriptionCallback: subscriptionCallback });
-            } else {
-                this.subscriptions[series][this.subscriptions[series].indexOf(connectionId)] = { connectionId: connectionId, subscriptionCallback: subscriptionCallback };
-            }
+        //     let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
+        //         return existingSeriesSubscription.connectionId === connectionId;
+        //     });
 
-        });
+        //     if (!existingSeriesSubscription) {
+        //         this.subscriptions[series].push({ connectionId: connectionId, subscriptionCallback: subscriptionCallback });
+        //     } else {
+        //         this.subscriptions[series][this.subscriptions[series].indexOf(connectionId)] = { connectionId: connectionId, subscriptionCallback: subscriptionCallback };
+        //     }
+
+        // });
     }
 
-    unsubscribe(series, connectionId) {
+    unsubscribe(seriesArray, connectionId) {
 
         console.log('unsubscribing', connectionId);
 
-        if (!this.subscriptions[series]) {
-            return;
+        if (this.subscriptions[connectionId]) {
+            seriesArray.forEach(unsubscribeSeries => {
+                let unsubscribeIndex = this.subscriptions[connectionId].seriesArray.indexOf(series);
+                if (unsubscribeIndex > -1) {
+                    this.subscriptions[connectionId].seriesArray.splice(unsubscribeIndex, 1);
+                }
+            });
+            if (this.subscriptions[connectionId].seriesArray.length === 0) {
+                delete this.subscriptions[connectionId];
+            }
         }
 
-        let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
-            return existingSeriesSubscription.connectionId = connectionId;
-        });
+        // if (!this.subscriptions[series]) {
+        //     return;
+        // }
 
-        if (existingSeriesSubscription) {
-            let index = this.subscriptions[series].indexOf(existingSeriesSubscription);
-            this.subscriptions[series].splice(index, 1);
-        }
+        // let existingSeriesSubscription = this.subscriptions[series].find(existingSeriesSubscription => {
+        //     return existingSeriesSubscription.connectionId = connectionId;
+        // });
+
+        // if (existingSeriesSubscription) {
+        //     let index = this.subscriptions[series].indexOf(existingSeriesSubscription);
+        //     this.subscriptions[series].splice(index, 1);
+        // }
     }
 
     getThreadsPerSeries(series) {
         return this.processedData.threadMapping[series];
     }
 
+    // series array refers to all series now
     updateSubscribers(seriesArray, updatedData, updatedSeries) {
 
-        if (this.subscriptions && Object.keys(this.subscriptions).length > 0) {
-            console.log('update subscribers');
+        Object.keys(this.subscriptions).forEach(subscriberConnectionId => {
 
-            let threadIndices = seriesArray.map(series => this.getThreadsPerSeries(series))
+            let subscriber = this.subscriptions[subscriberConnectionId];
+
+            let threadIndices = subscriber.seriesArray.map(series => this.getThreadsPerSeries(series))
                 // result was array of arrays, so reduce to one array
                 .reduce((agg, curr) => {
                     // only add the thread val (first one)
@@ -259,46 +306,99 @@ class DataAnalysis {
                     return agg;
                 }, []);
 
-            let subscribers = seriesArray.map(series => {
-                return this.subscriptions[series];
-            }).reduce((agg, curr) => {
-                return agg.concat(curr);
-            }, []);
-
-            // console.log("\n\n", 'threads: ' + "\n", JSON.stringify(this.processedData), "\n\n");
-
-            if (seriesArray[0] === 'a') {
-                console.log('seriesArray', seriesArray, 'threadIndices', threadIndices)
-            }
-
             threadIndices.forEach(threadIndex => {
 
-                if (subscribers) {
-                    subscribers.forEach(existingSeriesSubscription => {
-                        if (existingSeriesSubscription) {
+                subscriber.subscriptionCallback({
+                    action: 'correlations',
+                    data: this.processedData.correlations
+                });
 
-                            console.log('this.processedData.threads[threadIndex]', JSON.stringify(this.processedData.threads[threadIndex]));
+                console.log('this.processedData.threads[threadIndex]', JSON.stringify(this.processedData.threads['i'+threadIndex]));
 
-                            existingSeriesSubscription.subscriptionCallback({
-                                action: 'thread',
-                                threadId: threadIndex, // TODO: make thread hooked by a uuid instead of index
-                                data: this.processedData.threads[threadIndex]
-                            });
+                subscriber.subscriptionCallback({
+                    action: 'thread',
+                    threadId: 'i'+threadIndex, // TODO: make thread hooked by a uuid instead of index
+                    data: this.processedData.threads['i'+threadIndex]
+                });
 
-                            if (updatedData) {
-                                existingSeriesSubscription.subscriptionCallback({
-                                    action: 'update',
-                                    threadId: threadIndex,
-                                    seriesId: updatedSeries,
-                                    data: updatedData
-                                });
-                            }
-                        }
+                if (updatedData) {
+                    subscriber.subscriptionCallback({
+                        action: 'update',
+                        threadId: threadIndex,
+                        seriesId: updatedSeries,
+                        data: updatedData
                     });
                 }
 
             });
-        }
+
+        });
+
+
+        // if (this.subscriptions && Object.keys(this.subscriptions).length > 0) {
+        //     console.log('update subscribers');
+
+        //     let threadIndices = seriesArray.map(series => this.getThreadsPerSeries(series))
+        //         // result was array of arrays, so reduce to one array
+        //         .reduce((agg, curr) => {
+        //             // only add the thread val (first one)
+        //             return agg.concat(curr[0]);
+        //         }, [])
+        //         .sort()
+        //         // remove duplicates
+        //         .reduce((agg, curr) => {
+        //             if (agg.indexOf(curr) < 0) {
+        //                 agg.push(curr);
+        //             }
+        //             return agg;
+        //         }, []);
+
+        //     let subscribers = seriesArray.map(series => {
+        //         return this.subscriptions[series];
+        //     }).reduce((agg, curr) => {
+        //         return agg.concat(curr);
+        //     }, []);
+
+        //     // console.log("\n\n", 'threads: ' + "\n", JSON.stringify(this.processedData), "\n\n");
+
+        //     if (seriesArray[0] === 'a') {
+        //         console.log('seriesArray', seriesArray, 'threadIndices', threadIndices)
+        //     }
+
+        //     threadIndices.forEach(threadIndex => {
+
+        //         if (subscribers) {
+        //             subscribers.forEach(existingSeriesSubscription => {
+        //                 if (existingSeriesSubscription) {
+
+        //                     existingSeriesSubscription.subscriptionCallback({
+        //                         action: 'correlations',
+        //                         data: this.processedData.correlations
+        //                     });
+
+
+        //                     console.log('this.processedData.threads[threadIndex]', JSON.stringify(this.processedData.threads[threadIndex]));
+
+        //                     existingSeriesSubscription.subscriptionCallback({
+        //                         action: 'thread',
+        //                         threadId: threadIndex, // TODO: make thread hooked by a uuid instead of index
+        //                         data: this.processedData.threads[threadIndex]
+        //                     });
+
+        //                     if (updatedData) {
+        //                         existingSeriesSubscription.subscriptionCallback({
+        //                             action: 'update',
+        //                             threadId: threadIndex,
+        //                             seriesId: updatedSeries,
+        //                             data: updatedData
+        //                         });
+        //                     }
+        //                 }
+        //             });
+        //         }
+
+        //     });
+        // }
     }
 
 

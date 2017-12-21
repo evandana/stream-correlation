@@ -91,6 +91,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                         break;
                     case 'update':
                         break;
+                    case 'correlations':
+                        this._updateCorrelations(parsedMsg.data);
+                        break;
                 }
             }
 
@@ -143,6 +146,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
             _getRandomVal(max) {
                 return Math.round(Math.random() * max);
+            }
+
+            _parseCorrelationData(correlationData) {
+                return {
+                    rows: correlationData.map( row => [row.id, row.correlation/1000]),
+                    cols: [{ label: 'Series Pair', type: 'string' }, { label: 'Pearson correlation coefficient', type: 'number' }],
+                    options: {
+                        height: 600,
+                        hAxis: {
+                            minValue: -1,
+                            maxValue: 1,
+                            ticks: [-1, -0.8, 0, 0.8, 1]
+                        },
+                        colors: ['#6c91c2', '#aaabbc', '#8b8982', '#373f47', '#c3c9e9'],
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            }
+
+            _updateCorrelations(correlationData) {
+                this.dispatchEvent(new CustomEvent('correlation-update', {
+                    detail: this._parseCorrelationData(correlationData)
+                }));
             }
 
             _updateData(threadId, threadData) {

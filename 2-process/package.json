@@ -11,6 +11,7 @@
   "dependencies": {
     "correlation-rank": "^0.1.0",
     "datalib": "^1.8.0",
+    "debounce": "^1.1.0",
     "websocket": "^1.0.25",
     "ws": "^3.3.3"
   }

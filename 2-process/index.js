@@ -33,10 +33,12 @@ client.on('connect', function(connection) {
             
             var details = JSON.parse(message.utf8Data);
 
+            console.log('==DATA-SOURCE-UPDATE==================================================', details.series);
+
             switch (details.action) {
-                case 'update':
-                    dataAnalysis.updateSeries(details);
-                    break;
+                // case 'update':
+                //     dataAnalysis.updateSeries(details);
+                //     break;
                 case 'series':
                     dataAnalysis.replaceSeries(details);
                     break;

@@ -24,8 +24,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="circle">2</div>
-      <h1>Subscribe to Series 'a' and 'b'</h1>
+      
+      <h2>Correlations</h2>
+      <p>Show all correlations for all data series permutation pairs</p>
+
+      <google-chart 
+          type='bar' 
+          style="height: 600px;"
+          options="{{correlationData.options}}" 
+          cols="{{correlationData.cols}}" 
+          rows="{{correlationData.rows}}">
+      </google-chart>
+
+      <!--<template is="dom-repeat" items="{{correlationData}}">
+        <div style="display:table-row;">
+            <div style="display:table-cell">
+              {{item.id}}
+            </div>
+            <div style="display:table-cell">
+              {{item.correlation}}
+            </div>
+        </div>
+      </template>-->
+
+
+      <h2>Subscribe to Series 'a' and 'b'</h2>
       <p>Show all "threads" that contain 'a' or 'b' and any correlated series pairs</p>
+
       <template is="dom-repeat" items="{{threads}}">
         <template is="dom-if" if="{{item.cols.length}}">
            <!--<pre>{{stringify(item.cols)}}</pre>
@@ -46,7 +71,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     class NormalView extends Polymer.Element {
       static get is() { return 'normal-view'; }
 
-
       static get properties() {
 
         return {
@@ -59,7 +83,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           threads: {
             type: Array,
             value: []
-          }
+          },
+          correlationData: {
+            type: Array,
+            value: []
+          },
         }
       }
 
