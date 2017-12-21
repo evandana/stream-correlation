@@ -1,0 +1,109 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/google-chart/google-chart.html">
+
+<dom-module id="normal-view">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <div class="card">
+      <div class="circle">2</div>
+      
+      <h2>Correlations</h2>
+      <p>Show all correlations for all data series permutation pairs</p>
+
+      <google-chart 
+          type='bar' 
+          style="height: 600px;"
+          options="{{correlationData.options}}" 
+          cols="{{correlationData.cols}}" 
+          rows="{{correlationData.rows}}">
+      </google-chart>
+
+      <!--<template is="dom-repeat" items="{{correlationData}}">
+        <div style="display:table-row;">
+            <div style="display:table-cell">
+              {{item.id}}
+            </div>
+            <div style="display:table-cell">
+              {{item.correlation}}
+            </div>
+        </div>
+      </template>-->
+
+
+      <h2>Subscribe to Series 'a' and 'b'</h2>
+      <p>Show all "threads" that contain 'a' or 'b' and any correlated series pairs</p>
+
+      <template is="dom-repeat" items="{{threads}}">
+        <template is="dom-if" if="{{item.cols.length}}">
+           <!--<pre>{{stringify(item.cols)}}</pre>
+          <pre>{{stringify(item.rows)}}</pre> -->
+          <google-chart 
+            type='line' 
+              options="{{chartOptions}}" 
+              cols="{{item.cols}}" 
+              rows="{{item.rows}}">
+          </google-chart>
+        </template>
+      </template>
+      <div id="linechart_material" width="800px" height="400px"></div>
+    </div>
+  </template>
+
+  <script>
+    class NormalView extends Polymer.Element {
+      static get is() { return 'normal-view'; }
+
+      static get properties() {
+
+        return {
+          chartOptions: {
+            type: Object,
+            value: {
+              colors: ['#6c91c2', '#aaabbc', '#8b8982', '#373f47', '#c3c9e9']
+            }
+          },
+          threads: {
+            type: Array,
+            value: []
+          },
+          correlationData: {
+            type: Array,
+            value: []
+          },
+        }
+      }
+
+      stringify(text) {
+        return JSON.stringify(text);
+      }
+
+      /** 
+       * Native lifecycle method
+       **/
+      connectedCallback() {
+        super.connectedCallback();
+      }
+
+    }
+
+    window.customElements.define(NormalView.is, NormalView);
+  </script>
+</dom-module>

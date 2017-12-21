@@ -1,0 +1,147 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/google-chart/google-chart.html">
+
+<dom-module id="summation-view">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <div class="card">
+      <div class="circle">1</div>
+      <h1>Simple Visualization</h1>
+
+      <template is="dom-repeat" items="{{threads}}">
+        <template is="dom-if" if="{{item.cols.length}}">
+          <!-- <pre>{{stringify(item.cols)}}</pre>
+          <pre>{{stringify(item.rows)}}</pre> -->
+          <google-chart 
+            type='line' 
+              options="{{item.options}}" 
+              cols="{{item.cols}}" 
+              rows="{{item.rows}}">
+          </google-chart>
+        </template>
+      </template>
+      <div id="linechart_material" width="400px" height="400px"></div>
+    </div>
+  </template>
+
+  <script>
+    class SummationView extends Polymer.Element {
+      static get is() { return 'summation-view'; }
+
+
+      static get properties() {
+
+        return {
+          threads: {
+            type: Array,
+            value: []
+          }
+        }
+      }
+
+      stringify(text) {
+        return JSON.stringify(text);
+      }
+
+      /** 
+       * Native lifecycle method
+       **/
+      connectedCallback() {
+        super.connectedCallback();
+
+        this.tempChangeData();
+      }
+
+      getRandomVal(max) {
+        return Math.round(Math.random() * max);
+      }
+
+      getStubData() {
+        return {
+          threadMapping: {
+            a: 0,
+            b: 1,
+            c: 2
+          },
+          threads: [
+            [
+              {
+                series: "a",
+                data: [117, this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), 342, 308, 182, 911, 22, 804]
+              },
+              {
+                series: "b",
+                data: [273, 89, 118, this.getRandomVal(1000), this.getRandomVal(1000), 630, 838, 707, 630, 571]
+              }
+            ],
+            [
+              {
+                series: "c",
+                data: [273, 89, 118, 485, 529, 630, 838, 707, 630, 571]
+              }
+            ],
+            [
+              {
+                series: "d",
+                data: [this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000), this.getRandomVal(1000)]
+              }
+            ]
+          ]
+        }
+      }
+
+      translateFromWsToChartFormat(wsData) {
+
+        return wsData.threads.map(thread => {
+          console.log("thread: ", thread);
+          let chartData = {
+            rows: [],
+            cols: [],
+            options: {}
+          };
+          // assume there's always at least one series in a thread
+          chartData.cols.push({ label: 'index', type: 'number' });
+          thread.forEach((series) => {
+            chartData.cols.push({ label: series.series, type: 'number' });
+          });
+          thread[0].data.forEach((dataVal, index) => {
+            chartData.rows.push([index]);
+            thread.forEach(series => {
+            chartData.rows[index].push(series.data[index]);
+            });
+          });
+
+          return chartData;
+        });
+      }
+
+      tempChangeData() {
+        let translatedData = this.translateFromWsToChartFormat(this.getStubData());
+        this.set('threads', translatedData);
+        console.log("translatedData: ", translatedData);
+        setTimeout(() => this.tempChangeData(), 4 * 1000);
+      }
+
+    }
+
+    window.customElements.define(SummationView.is, SummationView);
+  </script>
+</dom-module>
