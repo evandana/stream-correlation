@@ -41,7 +41,7 @@ class DataSimulator {
             let lastIndexOfSeriesA = this.allData['a'].length - 1;
             lastIndexOfSeriesA = lastIndexOfSeriesA < 9 ? lastIndexOfSeriesA - 1 : lastIndexOfSeriesA;
             lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
-            newVal = this.allData['a'][lastIndexOfSeriesA] * -1 + Math.round(Math.random()*400) - 200;
+            newVal = (this.allData['a'][lastIndexOfSeriesA] * -1 + Math.round(Math.random()*400) + 550)/2;
         } else {
             newVal = Math.round(Math.random()*1000);
         }

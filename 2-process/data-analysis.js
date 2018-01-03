@@ -309,6 +309,11 @@ class DataAnalysis {
                     return agg;
                 }, []);
 
+            subscriber.subscriptionCallback({
+                action: 'raw',
+                data: this.rawData
+            });
+
             threadIndices.forEach(threadIndex => {
 
                 subscriber.subscriptionCallback({
@@ -320,7 +325,7 @@ class DataAnalysis {
 
                 subscriber.subscriptionCallback({
                     action: 'thread',
-                    threadId: threadIndex, // TODO: make thread hooked by a uuid instead of index
+                    threadId: threadIndex,
                     data: this.processedData.threads[threadIndex]
                 });
 
@@ -338,6 +343,9 @@ class DataAnalysis {
         });
 
 
+        /**
+         * thread-centric subscription model
+         */
         // if (this.subscriptions && Object.keys(this.subscriptions).length > 0) {
         //     console.log('update subscribers');
 

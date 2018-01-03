@@ -20,6 +20,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </websocket-component>
     </template>
     <script>
+        var colors = ['#6c91c2', '#aaabbc', '#8b8982', '#c3c9e9', '#027EA7', '#BFBFBF', '#E8E8E8', '#EEC96A', '#C4A780', '#96BBBB', '#84C0C6', '#F8F4E3', '#E6D3A3'];
+
         class DatasourceWebsocket extends Polymer.Element {
             static get is() { return 'datasource-websocket'; }
 
@@ -79,11 +81,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 });
             }
 
+            _updateRawData (rawChartData) {
+
+                console.log('sending raw data update');
+
+                this.dispatchEvent(new CustomEvent('raw-data-update', {
+                    detail: rawChartData
+                }));
+            }
+
             _handleWebsocketMessage(msg) {
 
                 var parsedMsg = JSON.parse(msg.detail.data).data;
 
                 switch (parsedMsg.action) {
+                    case 'raw':
+                        // translate data and update
+                        // console.log('thread ' + parsedMsg.threadId, parsedMsg.data);
+                        this._updateRawData(this._translateThreadFromWsToChartFormat(parsedMsg.data));
+                        break;
                     case 'thread':
                         // translate data and update
                         // console.log('thread ' + parsedMsg.threadId, parsedMsg.data);
@@ -97,7 +113,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
             }
 
-            _translateThreadFromWsToChartFormat(threadData) {
+            _translateThreadFromWsToChartFormat(incomingData) {
 
                 let chartData = {
                     rows: [],
@@ -107,17 +123,35 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 // assume there's always at least one series in a thread
                 chartData.cols.push({ label: 'index', type: 'number' });
 
-                let threadKeys = Object.keys(threadData);
+                let chartKeys = Object.keys(incomingData);
 
-                threadKeys.forEach((series) => {
-                    chartData.cols.push({ label: threadData[series].series, type: 'number' });
+                chartKeys.forEach((series, index) => {
+                    if (incomingData[series].series) {
+                        // if threaded data
+                        chartData.cols.push({ label: incomingData[series].series, type: 'number', color: colors[index] });
+                    } else {
+                        // if raw data
+                        chartData.cols.push({ label: series, type: 'number', color: colors[index] });
+                    }
                 });
-                threadData[threadKeys[0]].data.forEach((dataVal, index) => {
-                    chartData.rows.push([index]);
-                    threadKeys.forEach(series => {
-                        chartData.rows[index].push(threadData[series].data[index]);
+
+                if (!!incomingData[chartKeys[0]].data) {
+                    // if threaded data
+                    incomingData[chartKeys[0]].data.forEach((dataVal, index) => {
+                        chartData.rows.push([index]);
+                        chartKeys.forEach(series => {
+                            chartData.rows[index].push(incomingData[series].data[index]);
+                        });
                     });
-                });
+                } else {
+                    // if raw data
+                    incomingData[chartKeys[0]].forEach((dataVal, index) => {
+                        chartData.rows.push([index]);
+                        chartKeys.forEach(series => {
+                            chartData.rows[index].push(incomingData[series][index]);
+                        });
+                    });
+                }
 
                 return chartData;
             }
@@ -152,18 +186,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 return {
                     rows: correlationData.map( row => [row.id, row.correlation/1000]),
                     cols: [{ label: 'Series Pair', type: 'string' }, { label: 'Pearson correlation coefficient', type: 'number' }],
-                    options: {
-                        height: 600,
-                        hAxis: {
-                            minValue: -1,
-                            maxValue: 1,
-                            ticks: [-1, -0.8, 0, 0.8, 1]
-                        },
-                        colors: ['#6c91c2', '#aaabbc', '#8b8982', '#373f47', '#c3c9e9'],
-                        legend: {
-                            position: 'top'
-                        }
-                    }
+                    options: {}
                 }
             }
 

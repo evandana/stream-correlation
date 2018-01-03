@@ -15,56 +15,98 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <dom-module id="normal-view">
   <template>
     <style include="shared-styles">
-      :host {
+       :host {
         display: block;
 
         padding: 10px;
       }
+
+      .thread-chart-container {
+        display: inline-block;
+      }
+
+      .thread-chart--legend--label {
+        font-size: .8em;
+        color: #333;
+        margin-right: 1em;
+      }
+      .thread-chart--legend--line {
+        padding-left: .5em; 
+        padding-right: .5em;
+        margin-right: .25em;
+        position: relative;
+        top: -.5em;
+      }
     </style>
 
+
     <div class="card">
-      <div class="circle">2</div>
-      
-      <h2>Correlations</h2>
-      <p>Show all correlations for all data series permutation pairs</p>
 
-      <google-chart 
-          type='bar' 
-          style="height: 600px;"
-          options="{{correlationData.options}}" 
-          cols="{{correlationData.cols}}" 
-          rows="{{correlationData.rows}}">
-      </google-chart>
+      <div class="circle">1</div>
+      <h2>Raw Data</h2>
+      <p>Show all raw data from generator</p>
 
-      <!--<template is="dom-repeat" items="{{correlationData}}">
-        <div style="display:table-row;">
-            <div style="display:table-cell">
-              {{item.id}}
-            </div>
-            <div style="display:table-cell">
-              {{item.correlation}}
-            </div>
-        </div>
-      </template>-->
-
-
-      <h2>Subscribe to Series 'a' and 'b'</h2>
-      <p>Show all "threads" that contain 'a' or 'b' and any correlated series pairs</p>
-
-      <template is="dom-repeat" items="{{threads}}">
-        <template is="dom-if" if="{{item.cols.length}}">
-           <!--<pre>{{stringify(item.cols)}}</pre>
-          <pre>{{stringify(item.rows)}}</pre> -->
-          <google-chart 
-            type='line' 
-              options="{{chartOptions}}" 
-              cols="{{item.cols}}" 
-              rows="{{item.rows}}">
+      <div id="main">
+        <template is="dom-if" if="{{rawChartData.cols.length}}">
+          <div class="thread-chart--legend">
+            <template is="dom-repeat" items="{{rawChartData.cols}}" filter="chartColFilter">
+              <span class="thread-chart--legend--line" style="border-bottom: 2px solid {{item.color}}"></span><span class="thread-chart--legend--label">{{item.label}}</span>
+            </template>
+          </div>
+          <google-chart width="800px" height="400px" class="thread-chart" type='line' options="{{rawChartDataOverrideOptions}}" cols="{{rawChartData.cols}}"
+            rows="{{rawChartData.rows}}">
           </google-chart>
         </template>
-      </template>
-      <div id="linechart_material" width="800px" height="400px"></div>
+      </div>
+
     </div>
+
+
+    <div class="card">
+
+      <div class="circle">2</div>
+      <h2>Correlations</h2>
+      <p>Show all correlations for all data series permutation pairs</p>
+      <p>Correlations above an absolute value of 0.8 will be "threaded" together</p>
+
+      <div class="thread-chart--legend">
+        <template is="dom-repeat" items="{{correlationData.cols}}" filter="chartColFilter">
+          <span class="thread-chart--legend--line" style="border-bottom: 2px solid {{item.color}}"></span><span class="thread-chart--legend--label">{{item.label}}</span>
+        </template>
+      </div>
+      <google-chart width="800px" height="400px" type='bar' options="{{correlationDataOverrideOptions}}" cols="{{correlationData.cols}}"
+        rows="{{correlationData.rows}}">
+      </google-chart>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="circle">3</div>
+      <h2>Subscribe to Series 'a' and 'b'</h2>
+      <p>Show all "threads" that contain 'a' or 'b' and any correlated series (threaded data)</p>
+
+      <div id="main">
+        <template is="dom-repeat" items="{{threads}}">
+          <div class="thread-chart-container">
+            <template is="dom-if" if="{{item.cols.length}}">
+              <div class="thread-chart--legend">
+                <template is="dom-repeat" items="{{item.cols}}" filter="chartColFilter">
+                  <span class="thread-chart--legend--line" style="border-bottom: 2px solid {{item.color}}"></span><span class="thread-chart--legend--label">{{item.label}}</span>
+                </template>
+              </div>
+              <google-chart class="thread-chart" type='line' options="{{threadChartOverrideOptions}}" cols="{{item.cols}}" rows="{{item.rows}}">
+              </google-chart>
+            </template>
+          </div>
+        </template>
+        <div id="linechart_material" width="800px" height="400px"></div>
+      </div>
+
+    </div>
+
+
   </template>
 
   <script>
@@ -74,20 +116,65 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get properties() {
 
         return {
-          chartOptions: {
-            type: Object,
-            value: {
-              colors: ['#6c91c2', '#aaabbc', '#8b8982', '#373f47', '#c3c9e9']
-            }
-          },
           threads: {
             type: Array,
             value: []
+          },
+          threadChartOverrideOptions: {
+            type: Object,
+            value: {
+              animation: {
+                duration: 500
+              },
+              legend: {
+                position: 'none',
+              },
+              colors: ['#6c91c2', '#aaabbc', '#8b8982', '#c3c9e9', '#027EA7', '#BFBFBF', '#E8E8E8', '#EEC96A', '#C4A780', '#96BBBB', '#84C0C6', '#F8F4E3', '#E6D3A3'],
+            }
           },
           correlationData: {
             type: Array,
             value: []
           },
+          correlationDataOverrideOptions: {
+            type: Object,
+            value: {
+              animation: {
+                duration: 500
+              },
+              height: 300,
+              width: 800,
+              vAxis: {
+                minValue: -1,
+                maxValue: 1,
+                ticks: [-1, -0.8, 0, 0.8, 1]
+              },
+              colors: ['#6c91c2', '#aaabbc', '#8b8982', '#c3c9e9', '#027EA7', '#BFBFBF', '#E8E8E8', '#EEC96A', '#C4A780', '#96BBBB', '#84C0C6', '#F8F4E3', '#E6D3A3'],
+              legend: {
+                position: 'none'
+              },
+              orientation: 'horizontal'
+            }
+          },
+          rawChartData: {
+            type: Object,
+            value: {}
+          },
+          rawChartDataOverrideOptions: {
+            type: Object,
+            value: {
+              animation: {
+                duration: 500,
+                startup: true,
+                easing: 'out',
+              },
+              colors: ['#6c91c2', '#aaabbc', '#8b8982', '#c3c9e9', '#027EA7', '#BFBFBF', '#E8E8E8', '#EEC96A', '#C4A780', '#96BBBB', '#84C0C6', '#F8F4E3', '#E6D3A3'],
+              width: 800,
+              legend: {
+                position: 'none',
+              },
+            }
+          }
         }
       }
 
@@ -100,6 +187,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
        **/
       connectedCallback() {
         super.connectedCallback();
+      }
+
+      chartColFilter(item, index) {
+        return index !== 0;
       }
 
     }

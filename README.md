@@ -13,7 +13,6 @@ Detect stream correlations in a limited number of streams
 
 ## Install & Run
 
-1. In your terminal, run: `./initall.sh && ./runall.sh`
-    - Installs all three sub-directories
-    - Runs each in a separate terminal
-1. Use Chrome to navigate to `localhost:1234`
+1. `./initall.sh`: Runs install scripts for all three sub-directories, each in a separate terminal
+1. `./runall.sh`: Runs start scripts for each sub-directory, each in a separate terminal
+1. Use Chrome to navigate to `http://127.0.0.1:8000/components/3-visualize/`
