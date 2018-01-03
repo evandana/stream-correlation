@@ -45,7 +45,7 @@ class DataAnalysis {
                 // if significant enough data to compare, then don't do correlations
                 pair.correlation = 0;
             } else {
-                pair.correlation = Math.round(this.CorrelationRank.rank(pair.data[0], pair.data[1]) * 1000);
+                pair.correlation = Math.round(this.CorrelationRank.rank(pair.data[0].map(timeVal => timeVal.value), pair.data[1].map(timeVal => timeVal.value)) * 1000);
             }
 
             return pair;

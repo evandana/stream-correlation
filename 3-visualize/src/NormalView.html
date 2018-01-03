@@ -12,6 +12,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="../bower_components/google-chart/google-chart.html">
 
+<link rel="import" href="/bower_components/px-vis-timeseries/px-vis-timeseries.html" />
+<link rel="import" href="/bower_components/px-vis/px-vis-data-converter.html" />
+
 <dom-module id="normal-view">
   <template>
     <style include="shared-styles">
@@ -30,8 +33,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         color: #333;
         margin-right: 1em;
       }
+
       .thread-chart--legend--line {
-        padding-left: .5em; 
+        padding-left: .5em;
         padding-right: .5em;
         margin-right: .25em;
         position: relative;
@@ -41,6 +45,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
     <div class="card">
+
+
+
+      <px-vis-timeseries prevent-resize width="800" height="500" chart-data="[[chartData]]" series-config="[[seriesConfig]]">
+      </px-vis-timeseries>
+
+      <px-vis-data-converter id="converter" data-key="series" id-key="name" original-data="[[originalData]]" chart-data="{{chartData}}"
+        series-config="{{seriesConfig}}">
+      </px-vis-data-converter>
+
 
       <div class="circle">1</div>
       <h2>Raw Data</h2>
@@ -116,6 +130,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get properties() {
 
         return {
+          originalData: {
+            type: Array,
+            value: [
+              {
+                series: [
+                  [1397102460000, 11.4403],
+                  [1397139660000, 13.1913],
+                  [1397177400000, 12.8485],
+                  [1397228040000, 10.975],
+                  [1397248260000, 12.9377],
+                  [1397291280000, 13.3795]
+                ],
+                max: 35.4784,
+                min: 7.6531,
+                id: 'a',
+                name: 'a',
+              }
+            ]
+          },
           threads: {
             type: Array,
             value: []
@@ -182,11 +215,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return JSON.stringify(text);
       }
 
+      updateOriginalData() {
+
+        setTimeout(() => {
+
+          let modifiedData = this.originalData;
+          modifiedData[0].series.pop();
+          let recentData = modifiedData[0].series[modifiedData[0].series.length - 1];
+          modifiedData[0].series.push([recentData[0]+43020000, recentData[1]+1]);
+          this.set('originalData', Object.assign({}, modifiedData));
+
+        }, 2000)
+      }
+
       /** 
        * Native lifecycle method
        **/
       connectedCallback() {
         super.connectedCallback();
+
+        this.updateOriginalData();
       }
 
       chartColFilter(item, index) {
