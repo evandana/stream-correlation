@@ -87,14 +87,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <datasource-websocket on-raw-data-update="handleRawDataUpdate" on-data-update="handleDataUpdate" on-correlation-update="handleCorrelationUpdate"></datasource-websocket>
 
     <app-drawer-layout fullbleed narrow="{{narrow}}">
-      <!-- Drawer content -->
-      <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
-        <app-toolbar>Menu</app-toolbar>
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <!--<a name="view1" href="[[rootPath]]view1">Raw Data</a>-->
-          <a name="threadedData" href="[[rootPath]]threadedData">Threaded Data</a>
-        </iron-selector>
-      </app-drawer>
 
       <!-- Main content -->
       <app-header-layout has-scrolling-region>
@@ -102,7 +94,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-header slot="header" condenses reveals effects="waterfall">
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>StreamCorrelation App</div>
+            <div main-title>Stream Correlation App</div>
           </app-toolbar>
         </app-header>
 
@@ -154,9 +146,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.page = page || 'threadedData';
 
         // Close a non-persistent drawer when the page & route are changed.
-        if (!this.$.drawer.persistent) {
-          this.$.drawer.close();
-        }
+        // if (!this.$.drawer.persistent) {
+        //   this.$.drawer.close();
+        // }
       }
 
       _pageChanged(page) {

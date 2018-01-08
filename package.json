@@ -1,0 +1,25 @@
+{
+  "name": "stream-correlation",
+  "version": "1.0.0",
+  "description": "Generate data and show correlated data streams as \"threads\" in a subscribed UI",
+  "main": "''",
+  "scripts": {
+    "install": "./initall.sh",
+    "start": "./runall.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/evandana/stream-correlation.git"
+  },
+  "keywords": [
+    "Streams",
+    "correlation",
+    "polymer"
+  ],
+  "author": "Evan Dana",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/evandana/stream-correlation/issues"
+  },
+  "homepage": "https://github.com/evandana/stream-correlation#readme"
+}
