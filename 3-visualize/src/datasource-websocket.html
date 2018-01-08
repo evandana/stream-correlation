@@ -113,6 +113,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
             }
 
+            // @returns:
+            // [
+            //     {
+            //         series: [
+            //         [1397102460000, 11.4403],
+            //         [1397139660000, 13.1913]
+            //         ],
+            //         max: 20,
+            //         min: -20,
+            //         id: 'a',
+            //         name: 'a',
+            //     }
+            // ]
             _translateThreadFromWsToChartFormat(incomingData) {
 
                 let chartData = {
@@ -148,35 +161,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 // assume all data has the same number of keys as the first set
                 if (!!incomingData[chartKeys[0]].data) {
                     // if threaded data
-                    incomingData[chartKeys[0]].data.forEach((dataVal) => {
+                    incomingData[chartKeys[0]].data.forEach((dataVal, index) => {
+
+                        let row = [index];
+
                         chartKeys.forEach((series, seriesIndex) => {
-
-                            incomingData[series].data.forEach( timeVal => {
-
-                                let seriesValObj = {};
-                                seriesValObj[seriesIndex] = timeVal.value;
-
-                                // add if currently not an object
-                                tempChartRows[timeVal.time] = tempChartRows[timeVal.time] ? Object.assign(tempChartRows[timeVal.time],seriesValObj) : seriesValObj;
-                            });
-
+                                row.push(incomingData[series].data[index].value);
                         });
+                        
+                        chartData.rows.push(row);
                     });
                 } else {
-                    // if raw data
-                    incomingData[chartKeys[0]].forEach((dataVal) => {
-                        chartKeys.forEach((series, seriesIndex) => {
+                    // if raw 
 
-                            incomingData[series].forEach( timeVal => {
+                    chartData = [];
+                    chartKeys.forEach((series, index) => {
 
-                                let seriesValObj = {};
-                                seriesValObj[seriesIndex] = timeVal.value;
+                        var seriesData;
+                        var name;
 
-                                // add if currently not an object
-                                tempChartRows[timeVal.time] = tempChartRows[timeVal.time] ? Object.assign(tempChartRows[timeVal.time],seriesValObj) : seriesValObj;
-                            });
+                        // assume all data has the same number of keys as the first set
+                        if (!!incomingData[series].data) {
+                            seriesData = incomingData[series].data.map(timeVal => [timeVal.time, timeVal.value]);
+                            name = incomingData[series].series;
+                        } else {
+                            seriesData = incomingData[series].map(timeVal => [timeVal.time, timeVal.value]);
+                            name = series;
+                        }
 
-                        });
+                        chartData.push({
+                            series: seriesData,
+                            max: 1200,
+                            min: -500,
+                            id: name,
+                            name: name
+                        })
                     });
                 }
 

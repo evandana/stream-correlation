@@ -12,6 +12,7 @@
     "start": "polymer serve"
   },
   "dependencies": {
-    "google-chart": "0.0.1-security"
+    "google-chart": "0.0.1-security",
+    "px-theme": "github:predixdev/px-theme"
   }
 }

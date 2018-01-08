@@ -179,12 +179,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       handleDataUpdate (evt) {
         let threadIndex = evt.detail.threadId;
         let threadData = evt.detail.threadData;
-
         let existingIndex = this.threadCharts.findIndex(chart => {
             let existingCols = chart.cols.map(col => { delete col.p; return col;});
             return JSON.stringify(chart.cols) === JSON.stringify(threadData.cols);
         });
-
         if (existingIndex > -1) {
           let tempThreadCharts = Object.assign([],this.threadCharts);
           tempThreadCharts[existingIndex] = threadData;
@@ -192,6 +190,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         } else {
           this.push('threadCharts', threadData);
         }
+
       }
 
       handleCorrelationUpdate(evt) {
