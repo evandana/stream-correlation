@@ -12,6 +12,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="../bower_components/google-chart/google-chart.html">
 
+<link rel="import" href="../bower_components/px-vis-timeseries/px-vis-timeseries.html" />
+<link rel="import" href="../bower_components/px-vis/px-vis-data-converter.html" />
+
+
 <dom-module id="normal-view">
   <template>
     <style include="shared-styles">
@@ -30,15 +34,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         color: #333;
         margin-right: 1em;
       }
+
       .thread-chart--legend--line {
-        padding-left: .5em; 
+        padding-left: .5em;
         padding-right: .5em;
         margin-right: .25em;
         position: relative;
         top: -.5em;
       }
+      
     </style>
-
 
     <div class="card">
 
@@ -47,16 +52,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>Show all raw data from generator</p>
 
       <div id="main">
-        <template is="dom-if" if="{{rawChartData.cols.length}}">
-          <div class="thread-chart--legend">
-            <template is="dom-repeat" items="{{rawChartData.cols}}" filter="chartColFilter">
-              <span class="thread-chart--legend--line" style="border-bottom: 2px solid {{item.color}}"></span><span class="thread-chart--legend--label">{{item.label}}</span>
-            </template>
-          </div>
-          <google-chart width="800px" height="400px" class="thread-chart" type='line' options="{{rawChartDataOverrideOptions}}" cols="{{rawChartData.cols}}"
-            rows="{{rawChartData.rows}}">
-          </google-chart>
-        </template>
+        <px-vis-data-converter id="converter" data-key="series" id-key="name" original-data="[[rawChartData]]" chart-data="{{convertedRawChartData}}"
+          series-config="{{seriesConfig}}">
+        </px-vis-data-converter>
+        <px-vis-timeseries 
+          id="rawChartData"
+          series-color-list="[[colorArray]]"
+          prevent-resize width="800" height="500" chart-data="[[convertedRawChartData]]" series-config="[[seriesConfig]]">
+        </px-vis-timeseries>
       </div>
 
     </div>
@@ -116,6 +119,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get properties() {
 
         return {
+          colorArray: {
+            type: Array,
+            // value: ['#6c91c2', '#aaabbc', '#8b8982', '#c3c9e9', '#027EA7', '#BFBFBF', '#E8E8E8', '#EEC96A', '#C4A780', '#96BBBB', '#84C0C6', '#F8F4E3', '#E6D3A3']
+            value: ['rgb(108, 145, 194)', 'rgb(170, 171, 188)', 'rgb(139, 137, 130)', 'rgb(195, 201, 233)', 'rgb(2, 126, 167)', 'rgb(191, 191, 191)', 'rgb(232, 232, 232)', 'rgb(238, 201, 106)', 'rgb(196, 167, 128)', 'rgb(150, 187, 187)', 'rgb(132, 192, 198)', 'rgb(248, 244, 227)', 'rgb(230, 211, 163)']
+
+          },
+          originalData: {
+            type: Array,
+            value: [
+              {
+                series: [
+                  [1397102460000, 11.4403],
+                  [1397139660000, 13.1913],
+                  [1397177400000, 12.8485],
+                  [1397228040000, 10.975],
+                  [1397248260000, 12.9377],
+                  [1397291280000, 13.3795]
+                ],
+                max: 20,
+                min: -20,
+                id: 'a',
+                name: 'a',
+              }
+            ]
+          },
           threads: {
             type: Array,
             value: []
@@ -174,11 +202,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return JSON.stringify(text);
       }
 
+      // updateOriginalData() {
+
+      //   setTimeout(() => {
+
+      //     let modifiedData = [...this.originalData];
+      //     modifiedData[0].series.shift();
+      //     let recentData = modifiedData[0].series[modifiedData[0].series.length - 1];
+      //     modifiedData[0].series.push([recentData[0]+43020000, recentData[1]+1]);
+      //     debugger;
+      //     this.set('originalData', [...modifiedData]);
+
+      //   }, 2000);
+      // }
+
       /** 
        * Native lifecycle method
        **/
       connectedCallback() {
         super.connectedCallback();
+
+        // this.updateOriginalData();
       }
 
       chartColFilter(item, index) {

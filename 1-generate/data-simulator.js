@@ -33,17 +33,26 @@ class DataSimulator {
         let newVal;
         // add new val
         if (id === 'c') {
-            let lastIndexOfSeriesA = this.allData['a'].length - 1;
+            let lastIndexOfSeriesA = this.allData['a'].length - 1 ;
             lastIndexOfSeriesA = lastIndexOfSeriesA < 9 ? lastIndexOfSeriesA - 1 : lastIndexOfSeriesA;
-            lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
-            newVal = this.allData['a'][lastIndexOfSeriesA] + Math.round(Math.random()*300) - 150;
+            lastIndexOfSeriesA = lastIndexOfSeriesA.value < 0 ? 0 : lastIndexOfSeriesA;
+            newVal = {
+                time: new Date().getTime(),
+                value: this.allData['a'][lastIndexOfSeriesA] ? this.allData['a'][lastIndexOfSeriesA].value + Math.round(Math.random()*300) - 150 : 0
+            };
         } else if (id === 'e') {
             let lastIndexOfSeriesA = this.allData['a'].length - 1;
             lastIndexOfSeriesA = lastIndexOfSeriesA < 9 ? lastIndexOfSeriesA - 1 : lastIndexOfSeriesA;
             lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
-            newVal = (this.allData['a'][lastIndexOfSeriesA] * -1 + Math.round(Math.random()*400) + 550)/2;
+            newVal = {
+                time: new Date().getTime(),
+                value: this.allData['a'][lastIndexOfSeriesA] ? ((this.allData['a'][lastIndexOfSeriesA].value * -1) + Math.round(Math.random()*400) - 50)/2 : 0
+            };
         } else {
-            newVal = Math.round(Math.random()*1000);
+            newVal = {
+                time: new Date().getTime(),
+                value: Math.round(Math.random()*1000)
+            };
         }
 
         this.allData[id].push(newVal);

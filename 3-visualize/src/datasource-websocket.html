@@ -113,6 +113,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 }
             }
 
+            // @returns:
+            // [
+            //     {
+            //         series: [
+            //         [1397102460000, 11.4403],
+            //         [1397139660000, 13.1913]
+            //         ],
+            //         max: 20,
+            //         min: -20,
+            //         id: 'a',
+            //         name: 'a',
+            //     }
+            // ]
             _translateThreadFromWsToChartFormat(incomingData) {
 
                 let chartData = {
@@ -120,6 +133,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     cols: [],
                     options: {}
                 };
+                
+                /**
+                 {
+                     12345: { // timestamp
+                         0: 123 // index of series, e.g. 'a'
+                     }
+                 }
+                 */
+                let tempChartRows = {};
+
                 // assume there's always at least one series in a thread
                 chartData.cols.push({ label: 'index', type: 'number' });
 
@@ -135,21 +158,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                     }
                 });
 
+                // assume all data has the same number of keys as the first set
                 if (!!incomingData[chartKeys[0]].data) {
                     // if threaded data
                     incomingData[chartKeys[0]].data.forEach((dataVal, index) => {
-                        chartData.rows.push([index]);
-                        chartKeys.forEach(series => {
-                            chartData.rows[index].push(incomingData[series].data[index]);
+
+                        let row = [index];
+
+                        chartKeys.forEach((series, seriesIndex) => {
+                                row.push(incomingData[series].data[index].value);
                         });
+                        
+                        chartData.rows.push(row);
                     });
                 } else {
-                    // if raw data
-                    incomingData[chartKeys[0]].forEach((dataVal, index) => {
-                        chartData.rows.push([index]);
-                        chartKeys.forEach(series => {
-                            chartData.rows[index].push(incomingData[series][index]);
-                        });
+                    // if raw 
+
+                    chartData = [];
+                    chartKeys.forEach((series, index) => {
+
+                        var seriesData;
+                        var name;
+
+                        // assume all data has the same number of keys as the first set
+                        if (!!incomingData[series].data) {
+                            seriesData = incomingData[series].data.map(timeVal => [timeVal.time, timeVal.value]);
+                            name = incomingData[series].series;
+                        } else {
+                            seriesData = incomingData[series].map(timeVal => [timeVal.time, timeVal.value]);
+                            name = series;
+                        }
+
+                        chartData.push({
+                            series: seriesData,
+                            max: 1200,
+                            min: -500,
+                            id: name,
+                            name: name
+                        })
                     });
                 }
 
