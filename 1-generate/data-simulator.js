@@ -46,7 +46,7 @@ class DataSimulator {
             lastIndexOfSeriesA = lastIndexOfSeriesA < 0 ? 0 : lastIndexOfSeriesA;
             newVal = {
                 time: new Date().getTime(),
-                value: this.allData['a'][lastIndexOfSeriesA] ? ((this.allData['a'][lastIndexOfSeriesA].value * -1) + Math.round(Math.random()*400) - 50)/2 : 0
+                value: this.allData['a'][lastIndexOfSeriesA] ? (this.allData['a'][lastIndexOfSeriesA].value /3) - Math.round(Math.random()*200) - 100 : 0
             };
         } else {
             newVal = {
