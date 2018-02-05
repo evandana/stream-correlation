@@ -8,6 +8,10 @@ Thread correlated streams together and display in UI
 
 ## What and Why
 
+### Slide Deck
+
+[slides.com/evandana/stream-correlation](https://slides.com/evandana/stream-correlation)
+
 ### Scenario: What Data is Correlated?
 
 - **Given** a continuous stream of data for multiple series
@@ -37,7 +41,7 @@ While the data processing for determining correlated streams is a simple use of 
 
 1. `npm run install` Runs install scripts for all three sub-directories, each in a separate terminal
 1. `npm run start` Runs start scripts for each sub-directory, each in a separate terminal
-1. Use Chrome to navigate to `http://127.0.0.1:8000/components/3-visualize/`
+1. Use Chrome to navigate to `http://127.0.0.1:8000`
 
 
 ### Preview
